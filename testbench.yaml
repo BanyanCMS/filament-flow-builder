@@ -1,0 +1,13 @@
+providers:
+  - Banyan\FlowBuilder\FlowBuilderServiceProvider
+  - Workbench\App\Providers\WorkbenchPanelProvider
+
+env:
+  - APP_KEY="base64:YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+  - CACHE_STORE=file
+  - SESSION_DRIVER=file
+
+workbench:
+  start: /admin/purchase-flow
+  discovers:
+    web: false

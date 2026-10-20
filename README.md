@@ -1,57 +1,169 @@
-# Filament Flow Builder (working name)
+# Filament Flow Builder
 
-A reusable, card-based approval-flow editor for **Filament v5 / Livewire v4**. It is extracted from Banyan CMS's *Settings → Workflows* editor (Start → steps → Finish, with "+" inserters, per-step outcomes and a settings side panel).
+A flexible, card-based **workflow builder for Filament v5**. You define, in code, the kinds of steps and conditions a flow may use. People then design their own flows with a visual editor:
 
-> Status: **design**. No code has moved yet. This README is the spec for the extraction. Licence: **private, all rights reserved** until the owner decides (see Open decisions).
+- Start and Finish cards;
+- a "+" between every pair of steps;
+- drag to reorder;
+- "only when …" conditions, drawn as a Yes/No branch;
+- a settings panel per step.
 
-## What it is
+A small runner moves items through a saved flow and fires events. Notifications, tasks and side effects stay in **your** app.
 
-Banyan's review-flow editor shows an approval process as a vertical column of cards on a dotted canvas:
+Extracted from [Banyan CMS](https://github.com/BanyanCMS/banyan)'s workflow editor. Licensed **MIT**.
 
-- **Start card:** who starts the flow, with chips for its scope ("Page review", "Workflow settings").
-- **Step cards:** each step has a type label ("Approval · Step 1"), a name, an assignee summary ("Any 1 of Editors (team, 1 person)"), and its outcomes in colour: "Approve → publish", "Request changes → author". A drag handle and a ⋮ menu sit on each card.
-- **"+" inserters** between cards add a step at that place.
-- **Finish card:** what happens at the end ("Publish, now or scheduled").
-- **Side panel:** the selected card's settings (name, applies-to, approvers, outcomes).
-- **Header:** *Test it as…* (simulate the flow as a given person), *More* and *Save*.
+## Requirements
 
-The goal: any Filament app can drop this in for its own approval processes (purchase approvals, leave requests, content review) **without Banyan's workflow engine**.
+PHP 8.3+, Laravel 13, Filament 5, Livewire 4.
 
-## Proposed package shape
+## Install
 
-```
-src/
-  FlowBuilder.php            Filament form field: FlowBuilder::make('flow')
-  Pages/EditFlowPage.php     Optional full-page editor (canvas + side panel)
-  Data/Flow.php              { start: StartNode, steps: list<Step>, finish: FinishNode }
-  Data/Step.php              { id, type, name, assignees, outcomes: list<Outcome>, meta }
-  Data/Outcome.php           { key, label, target: 'next'|'finish'|'author'|stepId, tone }
-  Contracts/StepType.php     host-registered step types (approval, notify, condition…)
-  Contracts/AssigneeSource.php   options + summary text for the "who" picker
-  Contracts/FlowSimulator.php    optional: powers "Test it as…"
-  Support/FlowValidator.php  unreachable steps, loops, missing assignees → issues list
-resources/views/             canvas, card, plus, side-panel (Blade + Alpine)
-resources/css/flow-builder.css   Filament theme tokens only (no Banyan tokens)
-resources/lang/{en,zh-Hant,zh-Hans}/
+```bash
+composer require banyancms/filament-flow-builder
+php artisan filament:assets
 ```
 
-**The host app owns persistence and meaning.** The plugin edits a plain `Flow` value and validates its shape. Saving it, and turning it into a running process, stay in the host. Banyan keeps its `ReviewFlow` model and engine and maps them with a small adapter.
+## 1. Define a kind of flow
 
-## Extraction plan
+```php
+use Banyan\FlowBuilder\Definitions\FlowDefinition;
+use Banyan\FlowBuilder\Steps\ApprovalStep;
 
-1. **M1, plugin core:** the `Flow`/`Step`/`Outcome` data, the field, the canvas, cards, "+" inserters, drag reorder, the side panel, the validator, and three languages. Pest and Livewire tests, PHPStan level 9.
-2. **M2, Banyan adapter:** Banyan's `ReviewFlowEditPage` renders through the plugin. `ReviewFlow` maps to `Flow`, with no change in behaviour (Banyan's existing tests must pass unchanged).
-3. **M3, demo and docs:** a standalone Filament demo app and a README with screenshots. Publishing to Packagist is optional.
+class PurchaseFlow extends FlowDefinition
+{
+    public static function key(): string { return 'purchase'; }
 
-## Source in Banyan (for M1)
+    protected function stepTypeClasses(): array
+    {
+        return [ApprovalStep::class, BudgetCheckStep::class];   // what "+" offers
+    }
 
-- `packages/admin/src/Workflow/ReviewFlowEditPage.php`, `packages/admin/src/Workflow/ReviewSteps/*`
-- `packages/admin/resources/views/workflow/builder*.blade.php`
-- `packages/admin/resources/css/builder.css` (≈1,900 lines; to be re-tokenised onto Filament's theme)
-- `packages/workflow/src/ReviewFlow/*`: the domain model, which **stays in Banyan** and is only the reference for the generic `Flow`
+    public function startLabel(): string { return 'Staff member submits a purchase'; }
+    public function finishLabel(): string { return 'Order placed'; }
 
-## Open decisions (owner)
+    // Who the built-in approval step can ask.
+    public function approvers(): array
+    {
+        return ['manager' => 'Line manager', 'finance' => 'Finance team', 'director' => 'Director'];
+    }
 
-- **Licence:** Banyan is AGPL-3.0 or commercial. Code moved here must be relicensed by its owner. MIT (common for Filament plugins) or proprietary/commercial?
-- **Name and home:** `filament-flow-builder` under BanyanCMS, or under another organisation (e.g. Solution Forest)?
-- **Scope of M1:** approval steps only, or also condition and notification steps?
+    // What the built-in "a value matches" condition can check.
+    public function contextFields(): array
+    {
+        return ['amount' => 'Amount (HKD)', 'department' => 'Department'];
+    }
+}
+```
+
+Register it on your panel:
+
+```php
+->plugin(FlowBuilderPlugin::make()->definitions([PurchaseFlow::class]))
+```
+
+## 2. Put the builder in a form
+
+```php
+use Banyan\FlowBuilder\Forms\FlowBuilderField;
+
+FlowBuilderField::make('approval_flow')->definition(PurchaseFlow::class)
+```
+
+The field's state is plain data (`{"steps": [...]}`); store it in a JSON column. A flow with problems (a step without approvers, a condition without a value, …) does not save. Each problem is shown in red on its card.
+
+## 3. Add your own steps
+
+Extend `AbstractStepType` (or implement `StepType`):
+
+```php
+class BudgetCheckStep extends AbstractStepType
+{
+    public static function key(): string { return 'budget-check'; }
+    public function label(): string { return 'Budget check'; }
+    public function description(): string { return 'Confirm the budget code has room for it.'; }
+    public function icon(): string { return 'heroicon-m-banknotes'; }
+    public function color(): string { return 'info'; }
+
+    // The settings panel: any Filament fields.
+    public function schema(FlowDefinition $definition): array
+    {
+        return [TextInput::make('budget_code')->label('Budget code')->live(onBlur: true)];
+    }
+
+    // Chips on the card.
+    public function summary(Step $step, FlowDefinition $definition): array
+    {
+        return filled($step->settings['budget_code'] ?? null) ? ['Code '.$step->settings['budget_code']] : [];
+    }
+
+    // The ways out, and where each one goes.
+    public function outcomes(Step $step, FlowDefinition $definition): array
+    {
+        return [
+            new Outcome('funded', 'Funded', Outcome::NEXT, 'success'),
+            new Outcome('no-budget', 'No budget', Outcome::START, 'danger'),
+            new Outcome('fast-track', 'Fast-track', Outcome::FINISH, 'primary'),
+        ];
+    }
+
+    public function validate(Step $step, FlowDefinition $definition): array
+    {
+        return blank($step->settings['budget_code'] ?? null) ? ['Give the budget code.'] : [];
+    }
+}
+```
+
+## 4. Add your own conditions
+
+Implement `ConditionType`:
+- `key()` and `label()`;
+- `schema()`: its settings fields;
+- `describe()`: the sentence on the card;
+- `passes($settings, $context)`;
+- `validate()`.
+
+List the class in `conditionTypeClasses()` on your definition. The built-in `ValueCondition` compares one of your `contextFields()` with a value (is, is not, more than, less than, contains).
+
+## 5. Run a flow
+
+```php
+$runner = app(FlowRunner::class);
+$flow = Flow::fromArray($request->approval_flow);
+$context = ['amount' => $purchase->amount, 'department' => $purchase->department];
+
+$position = $runner->start(new PurchaseFlow, $flow, $context);       // at the first step that applies
+$position = $runner->decide(new PurchaseFlow, $flow, $position, 'approve', $context);
+
+$purchase->update(['flow_position' => $position->toArray()]);       // store it; it is plain data
+```
+
+The runner is stateless and fires events. Listen to them for notifications, audit and side effects:
+
+| Event | When |
+|---|---|
+| `StepReached` | An item arrives at a step: notify its approvers, create tasks |
+| `StepSkipped` | A step's condition did not hold |
+| `OutcomeChosen` | Someone approved, rejected, … |
+| `FlowReturned` | Back to whoever started it |
+| `FlowFinished` | Every step is done |
+
+## Try it
+
+```bash
+composer install
+composer serve        # http://127.0.0.1:8090/admin/purchase-flow
+composer test         # Pest
+composer analyse      # PHPStan level 9
+```
+
+The workbench panel (`workbench/`) uses the `PurchaseFlow` and `BudgetCheckStep` from `tests/Support`.
+
+## Look and feel
+
+Every colour comes from the panel's own palette (`--primary-*`, `--gray-*`, `--success-*`, …), so the builder follows your theme and dark mode. The interface is in English, Traditional Chinese and Simplified Chinese. Publish the translations with `php artisan vendor:publish --tag=flow-builder-translations` to change the wording.
+
+## Roadmap
+
+1. **M1: the plugin** ✅ Data, field, canvas, drag, conditions, validator, runner, events, three languages, tests.
+2. **M2: Banyan uses it.** Banyan's *Settings → Workflows* renders through this plugin, with no change in behaviour.
+3. **M3: demo and docs.** Screenshots, more built-in step types if useful (parallel approval, notify-only), and a Packagist release when ready.
