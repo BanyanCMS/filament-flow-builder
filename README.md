@@ -12,6 +12,8 @@ A small runner moves items through a saved flow and fires events. Notifications,
 
 Extracted from [Banyan CMS](https://github.com/BanyanCMS/banyan)'s workflow editor. Licensed **MIT**.
 
+> **Where to change it:** the source lives in the Banyan monorepo at `packages/filament-flow-builder`. This repository is its published split, updated on each Banyan release tag. Open changes against the monorepo, not here.
+
 ## Requirements
 
 PHP 8.3+, Laravel 13, Filament 5, Livewire 4.
