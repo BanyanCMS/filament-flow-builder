@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder;
+namespace Banyan\FilamentFlowBuilder;
 
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 

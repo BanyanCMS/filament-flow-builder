@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Livewire\FlowBuilder;
+use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
 use Livewire\Livewire;
 
 function builder(array $flow = ['steps' => []], bool $readOnly = false): mixed

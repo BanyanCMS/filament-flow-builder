@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime\Events;
+namespace Banyan\FilamentFlowBuilder\Runtime\Events;
 
-use Banyan\FlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Flow;
 
 /** Every step is done: publish, pay, book — whatever your finish means. */
 final readonly class FlowFinished

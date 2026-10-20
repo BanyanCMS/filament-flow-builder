@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime;
+namespace Banyan\FilamentFlowBuilder\Runtime;
 
 /**
  * Where an item stands in a flow. The host stores it with the item (it is

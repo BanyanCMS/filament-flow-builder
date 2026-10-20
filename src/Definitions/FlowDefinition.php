@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Definitions;
+namespace Banyan\FilamentFlowBuilder\Definitions;
 
-use Banyan\FlowBuilder\Conditions\ConditionType;
-use Banyan\FlowBuilder\Conditions\ValueCondition;
-use Banyan\FlowBuilder\Steps\ApprovalStep;
-use Banyan\FlowBuilder\Steps\StepType;
+use Banyan\FilamentFlowBuilder\Conditions\ConditionType;
+use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
+use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
+use Banyan\FilamentFlowBuilder\Steps\StepType;
 use Illuminate\Support\Str;
 
 /**

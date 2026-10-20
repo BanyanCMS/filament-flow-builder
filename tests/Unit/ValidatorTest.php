@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Data\Condition;
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Step;
-use Banyan\FlowBuilder\Tests\Support\PurchaseFlow;
-use Banyan\FlowBuilder\Validation\FlowValidator;
+use Banyan\FilamentFlowBuilder\Data\Condition;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\Validation\FlowValidator;
 
 it('says what is wrong with each step, in plain words', function (): void {
     $flow = new Flow([

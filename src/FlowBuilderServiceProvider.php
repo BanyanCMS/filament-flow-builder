@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder;
+namespace Banyan\FilamentFlowBuilder;
 
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FlowBuilder\Livewire\FlowBuilder;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\ServiceProvider;

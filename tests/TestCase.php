@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Tests;
+namespace Banyan\FilamentFlowBuilder\Tests;
 
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FlowBuilder\FlowBuilderServiceProvider;
-use Banyan\FlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\FlowBuilderServiceProvider;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Filament\Actions\ActionsServiceProvider;

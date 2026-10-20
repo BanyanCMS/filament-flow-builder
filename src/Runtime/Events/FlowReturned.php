@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime\Events;
+namespace Banyan\FilamentFlowBuilder\Runtime\Events;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Step;
 
 /** The item went back to whoever started it (e.g. "Request changes"). */
 final readonly class FlowReturned

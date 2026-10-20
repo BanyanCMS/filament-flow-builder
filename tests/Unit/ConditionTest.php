@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Conditions\ValueCondition;
-use Banyan\FlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 
 it('compares a value the app provides with what the designer typed', function (string $operator, mixed $actual, string $value, bool $passes): void {
     expect((new ValueCondition)->passes(['field' => 'amount', 'operator' => $operator, 'value' => $value], ['amount' => $actual], new PurchaseFlow))->toBe($passes);

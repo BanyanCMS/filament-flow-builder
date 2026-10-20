@@ -26,8 +26,8 @@ php artisan filament:assets
 ## 1. Define a kind of flow
 
 ```php
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Steps\ApprovalStep;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
 
 class PurchaseFlow extends FlowDefinition
 {
@@ -64,7 +64,7 @@ Register it on your panel:
 ## 2. Put the builder in a form
 
 ```php
-use Banyan\FlowBuilder\Forms\FlowBuilderField;
+use Banyan\FilamentFlowBuilder\Forms\FlowBuilderField;
 
 FlowBuilderField::make('approval_flow')->definition(PurchaseFlow::class)
 ```

@@ -1,5 +1,5 @@
 providers:
-  - Banyan\FlowBuilder\FlowBuilderServiceProvider
+  - Banyan\FilamentFlowBuilder\FlowBuilderServiceProvider
   - Workbench\App\Providers\WorkbenchPanelProvider
 
 env:

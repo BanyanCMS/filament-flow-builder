@@ -1,7 +1,7 @@
 @php
-    /** @var \Banyan\FlowBuilder\Livewire\FlowBuilder $this */
+    /** @var \Banyan\FilamentFlowBuilder\Livewire\FlowBuilder $this */
     /** @var list<array<string, mixed>> $cards */
-    /** @var \Banyan\FlowBuilder\Definitions\FlowDefinition $flowDefinition */
+    /** @var \Banyan\FilamentFlowBuilder\Definitions\FlowDefinition $flowDefinition */
     $last = count($cards) - 1;
     $selectedCard = collect($cards)->firstWhere('id', $this->selected);
 @endphp

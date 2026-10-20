@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Validation;
+namespace Banyan\FilamentFlowBuilder\Validation;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 
 /**
  * What is wrong with a flow, by step id ("flow" for the flow as a whole),

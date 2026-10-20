@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FlowBuilder\Forms\FlowBuilderField;
-use Banyan\FlowBuilder\Livewire\FlowBuilder;
-use Banyan\FlowBuilder\Tests\Support\PurchaseForm;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Forms\FlowBuilderField;
+use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseForm;
 use Livewire\Livewire;
 
 beforeEach(function (): void {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Workbench\App\Providers;
 
-use Banyan\FlowBuilder\FlowBuilderPlugin;
-use Banyan\FlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\FlowBuilderPlugin;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;

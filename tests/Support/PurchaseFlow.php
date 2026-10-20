@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Tests\Support;
+namespace Banyan\FilamentFlowBuilder\Tests\Support;
 
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Steps\ApprovalStep;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
 
 /** A purchase request: the kind of flow an app defines in a few lines. */
 class PurchaseFlow extends FlowDefinition

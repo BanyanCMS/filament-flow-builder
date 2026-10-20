@@ -1,6 +1,6 @@
 {
     "name": "banyancms/filament-flow-builder",
-    "description": "A flexible, card-based workflow builder for Filament: define step types and conditions in code, let people design their own flows.",
+    "description": "A flexible, card-based workflow builder for any Filament v5 panel: define step types and conditions in code, let people design their own flows. Part of Banyan, usable without it.",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -8,8 +8,15 @@
         "laravel",
         "workflow",
         "approval",
-        "flow builder"
+        "flow builder",
+        "banyan"
     ],
+    "homepage": "https://github.com/BanyanCMS/banyan",
+    "support": {
+        "issues": "https://github.com/BanyanCMS/banyan/issues",
+        "source": "https://github.com/BanyanCMS/banyan",
+        "security": "https://github.com/BanyanCMS/banyan/blob/main/SECURITY.md"
+    },
     "require": {
         "php": "^8.3",
         "filament/filament": "^5.0",
@@ -26,30 +33,25 @@
     },
     "autoload": {
         "psr-4": {
-            "Banyan\\FlowBuilder\\": "src/"
+            "Banyan\\FilamentFlowBuilder\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Banyan\\FlowBuilder\\Tests\\": "tests/",
+            "Banyan\\FilamentFlowBuilder\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Banyan\\FlowBuilder\\FlowBuilderServiceProvider"
+                "Banyan\\FilamentFlowBuilder\\FlowBuilderServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
         }
     },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true,
     "scripts": {
         "serve": [
             "Composer\\Config::disableProcessTimeout",
@@ -59,5 +61,13 @@
         "test": "vendor/bin/pest",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "format": "vendor/bin/pint"
-    }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

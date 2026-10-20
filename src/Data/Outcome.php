@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Data;
+namespace Banyan\FilamentFlowBuilder\Data;
 
 /**
  * A way out of a step ("Approve", "Request changes") and where it leads.

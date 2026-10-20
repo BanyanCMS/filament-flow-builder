@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Tests\Support;
+namespace Banyan\FilamentFlowBuilder\Tests\Support;
 
-use Banyan\FlowBuilder\Data\Outcome;
-use Banyan\FlowBuilder\Data\Step;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Steps\AbstractStepType;
+use Banyan\FilamentFlowBuilder\Data\Outcome;
+use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Steps\AbstractStepType;
 use Filament\Forms\Components\TextInput;
 
 /** An app's own step type: a budget holder confirms the money is there. */

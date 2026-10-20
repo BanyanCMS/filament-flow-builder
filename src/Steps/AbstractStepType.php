@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Steps;
+namespace Banyan\FilamentFlowBuilder\Steps;
 
-use Banyan\FlowBuilder\Data\Outcome;
-use Banyan\FlowBuilder\Data\Step;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Data\Outcome;
+use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 
 /**
  * Sensible defaults for a step type: one "Done" outcome, no settings, no

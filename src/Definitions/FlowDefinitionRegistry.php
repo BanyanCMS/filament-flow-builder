@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Definitions;
+namespace Banyan\FilamentFlowBuilder\Definitions;
 
 use InvalidArgumentException;
 

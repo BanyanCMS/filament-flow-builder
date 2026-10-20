@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Data;
+namespace Banyan\FilamentFlowBuilder\Data;
 
 use Illuminate\Support\Str;
 

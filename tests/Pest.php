@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Tests\TestCase;
+use Banyan\FilamentFlowBuilder\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

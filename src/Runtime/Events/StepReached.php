@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime\Events;
+namespace Banyan\FilamentFlowBuilder\Runtime\Events;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Step;
 
 /**
  * An item arrived at a step. Listen to it to notify the step's approvers,

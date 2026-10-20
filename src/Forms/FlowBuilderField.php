@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Forms;
+namespace Banyan\FilamentFlowBuilder\Forms;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FlowBuilder\Validation\FlowValidator;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Validation\FlowValidator;
 use Closure;
 use Filament\Forms\Components\Field;
 use InvalidArgumentException;

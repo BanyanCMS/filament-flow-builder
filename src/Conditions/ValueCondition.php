@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Conditions;
+namespace Banyan\FilamentFlowBuilder\Conditions;
 
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 

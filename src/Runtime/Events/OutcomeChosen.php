@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime\Events;
+namespace Banyan\FilamentFlowBuilder\Runtime\Events;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Outcome;
-use Banyan\FlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Outcome;
+use Banyan\FilamentFlowBuilder\Data\Step;
 
 /** Someone chose an outcome on a step ("Approve", "Request changes"). */
 final readonly class OutcomeChosen

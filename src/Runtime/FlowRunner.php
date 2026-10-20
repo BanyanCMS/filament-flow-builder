@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Runtime;
+namespace Banyan\FilamentFlowBuilder\Runtime;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Outcome;
-use Banyan\FlowBuilder\Data\Step;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Runtime\Events\FlowFinished;
-use Banyan\FlowBuilder\Runtime\Events\FlowReturned;
-use Banyan\FlowBuilder\Runtime\Events\OutcomeChosen;
-use Banyan\FlowBuilder\Runtime\Events\StepReached;
-use Banyan\FlowBuilder\Runtime\Events\StepSkipped;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Outcome;
+use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Runtime\Events\FlowFinished;
+use Banyan\FilamentFlowBuilder\Runtime\Events\FlowReturned;
+use Banyan\FilamentFlowBuilder\Runtime\Events\OutcomeChosen;
+use Banyan\FilamentFlowBuilder\Runtime\Events\StepReached;
+use Banyan\FilamentFlowBuilder\Runtime\Events\StepSkipped;
 use Illuminate\Contracts\Events\Dispatcher;
 use InvalidArgumentException;
 

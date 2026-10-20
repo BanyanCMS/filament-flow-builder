@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Tests\Support;
+namespace Banyan\FilamentFlowBuilder\Tests\Support;
 
-use Banyan\FlowBuilder\Forms\FlowBuilderField;
+use Banyan\FilamentFlowBuilder\Forms\FlowBuilderField;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Schemas\Schema;

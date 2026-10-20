@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Step;
 
 it('reads a stored flow tolerantly: drops broken steps, renames duplicate or unsafe ids', function (): void {
     $flow = Flow::fromArray(['steps' => [

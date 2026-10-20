@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Workbench\App\Filament\Pages;
 
-use Banyan\FlowBuilder\Forms\FlowBuilderField;
-use Banyan\FlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\Forms\FlowBuilderField;
+use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;

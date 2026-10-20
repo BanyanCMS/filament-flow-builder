@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Data;
+namespace Banyan\FilamentFlowBuilder\Data;
 
 /**
  * A flow as people design it: an ordered list of steps between a fixed start

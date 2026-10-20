@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Data;
+namespace Banyan\FilamentFlowBuilder\Data;
 
 /**
  * "Only when …" on a step: a registered condition type and its settings.

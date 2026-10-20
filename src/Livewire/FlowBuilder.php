@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FlowBuilder\Livewire;
+namespace Banyan\FilamentFlowBuilder\Livewire;
 
-use Banyan\FlowBuilder\Data\Flow;
-use Banyan\FlowBuilder\Data\Outcome;
-use Banyan\FlowBuilder\Data\Step;
-use Banyan\FlowBuilder\Definitions\FlowDefinition;
-use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FlowBuilder\Validation\FlowValidator;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Outcome;
+use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
+use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Validation\FlowValidator;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
