@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+use Banyan\FlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FlowBuilder\Forms\FlowBuilderField;
+use Banyan\FlowBuilder\Livewire\FlowBuilder;
+use Banyan\FlowBuilder\Tests\Support\PurchaseForm;
+use Livewire\Livewire;
+
+beforeEach(function (): void {
+    app('view')->addNamespace('flow-builder-test', __DIR__.'/../Support/views');
+});
+
+it('puts the builder in a form and saves a valid flow as plain data', function (): void {
+    $flow = ['steps' => [['id' => 'm', 'type' => 'approval', 'name' => 'Manager', 'settings' => ['approvers' => ['manager'], 'rule' => 'any', 'count' => 1], 'when' => null]]];
+
+    $form = Livewire::test(PurchaseForm::class)
+        ->assertSeeLivewire(FlowBuilder::class)
+        ->assertSee('Purchase approval')
+        ->set('data.flow', $flow)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($form->get('saved'))->toBe(['flow' => $flow]);
+});
+
+it('refuses to save a flow with problems', function (): void {
+    Livewire::test(PurchaseForm::class)
+        ->set('data.flow', ['steps' => [['id' => 'm', 'type' => 'approval', 'name' => '', 'settings' => []]]])
+        ->call('save')
+        ->assertHasErrors(['data.flow']);
+});
+
+it('takes a definition by class or by its registered key, and nothing else', function (): void {
+    expect(FlowBuilderField::make('a')->definition('purchase')->getDefinitionKey())->toBe('purchase')
+        ->and(fn () => FlowBuilderField::make('b')->definition('not-registered'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => app(FlowDefinitionRegistry::class)->register(stdClass::class))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => app(FlowDefinitionRegistry::class)->get('nope'))->toThrow(InvalidArgumentException::class);
+});
