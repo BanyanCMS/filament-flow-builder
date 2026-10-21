@@ -77,13 +77,23 @@ trait InteractsWithFlowBuilder
      */
     public function flowCanvas(): array
     {
-        return ['cards' => $this->cards(), 'start' => $this->startCard(), 'flowDefinition' => $this->flowDefinition()];
+        return ['cards' => $this->flowCards(), 'start' => $this->flowStartCard(), 'flowDefinition' => $this->flowDefinition()];
     }
 
     public function select(?string $id): void
     {
+        // Errors under the panel's fields belong to what was selected before.
+        $panelErrors = array_values(array_filter(
+            $this->getErrorBag()->keys(),
+            static fn (string $key): bool => str_starts_with($key, 'stepData.') || str_starts_with($key, 'flowSettings.'),
+        ));
+
+        if ($panelErrors !== []) {
+            $this->resetErrorBag($panelErrors);
+        }
+
         if ($id === self::FLOW_START) {
-            $this->selectStart();
+            $this->selectFlowStart();
 
             return;
         }
@@ -94,7 +104,7 @@ trait InteractsWithFlowBuilder
         unset($this->cachedSchemas['stepForm']);
 
         if ($step !== null) {
-            $this->fillPanel([
+            $this->fillFlowPanel([
                 'name' => $step->name,
                 'settings' => $step->settings,
                 'when_type' => $step->when->type ?? self::FLOW_ALWAYS,
@@ -127,7 +137,7 @@ trait InteractsWithFlowBuilder
         }
 
         $step = new Step($definition->newStepId(), $type, $chosen->name, $chosen->settings, $chosen->when, $chosen->reminderDays);
-        $this->store($flow->insert($position, $step));
+        $this->storeFlow($flow->insert($position, $step));
         $this->select($step->id);
     }
 
@@ -137,7 +147,7 @@ trait InteractsWithFlowBuilder
             return;
         }
 
-        $this->store($this->currentFlow()->remove($id));
+        $this->storeFlow($this->currentFlow()->remove($id));
 
         if ($this->selected === $id) {
             $this->select($this->flowDefinition()->settingsSchema() === [] ? null : self::FLOW_START);
@@ -148,7 +158,7 @@ trait InteractsWithFlowBuilder
     public function moveStep(string $id, int $position): void
     {
         if (! $this->flowIsReadOnly()) {
-            $this->store($this->currentFlow()->move($id, $position));
+            $this->storeFlow($this->currentFlow()->move($id, $position));
         }
     }
 
@@ -175,7 +185,7 @@ trait InteractsWithFlowBuilder
     {
         // A different condition brings different fields: give each of them its key.
         if ($key === 'when_type' && ! $this->flowIsReadOnly()) {
-            $this->fillPanel([...$this->stepData, 'when_settings' => []]);
+            $this->fillFlowPanel([...$this->stepData, 'when_settings' => []]);
         }
 
         $flow = $this->currentFlow();
@@ -187,7 +197,7 @@ trait InteractsWithFlowBuilder
 
         $whenType = is_string($this->stepData['when_type'] ?? null) ? $this->stepData['when_type'] : self::FLOW_ALWAYS;
 
-        $this->store($flow->replace($step->with([
+        $this->storeFlow($flow->replace($step->with([
             'name' => is_string($this->stepData['name'] ?? null) ? $this->stepData['name'] : '',
             'settings' => $this->stepData['settings'] ?? [],
             'when' => in_array($whenType, ['', self::FLOW_ALWAYS], true) ? null : ['type' => $whenType, 'settings' => $this->stepData['when_settings'] ?? []],
@@ -199,7 +209,7 @@ trait InteractsWithFlowBuilder
     public function updatedFlowSettings(): void
     {
         if (! $this->flowIsReadOnly()) {
-            $this->store($this->currentFlow()->withSettings($this->flowSettings));
+            $this->storeFlow($this->currentFlow()->withSettings($this->flowSettings));
         }
     }
 
@@ -272,7 +282,7 @@ trait InteractsWithFlowBuilder
      *
      * @return list<array{id: string, number: int, kind: string, name: string, icon: string, color: string, chips: list<string>, outcomes: list<array{label: string, tone: string}>, condition: string|null, problems: list<string>}>
      */
-    public function cards(): array
+    public function flowCards(): array
     {
         $definition = $this->flowDefinition();
         $flow = $this->currentFlow();
@@ -299,7 +309,7 @@ trait InteractsWithFlowBuilder
                 'color' => $type?->cardColor($step, $definition) ?? 'gray',
                 'chips' => $chips,
                 'outcomes' => array_map(fn (Outcome $outcome): array => [
-                    'label' => $this->outcomeLabel($outcome, $index === $last, $definition),
+                    'label' => $this->flowOutcomeLabel($outcome, $index === $last, $definition),
                     'tone' => $outcome->tone,
                 ], $type?->outcomes($step, $definition) ?? []),
                 'condition' => $condition?->describe($step->when->settings ?? [], $definition),
@@ -315,7 +325,7 @@ trait InteractsWithFlowBuilder
      *
      * @return array{selectable: bool, chips: list<string>, problems: list<string>}
      */
-    public function startCard(): array
+    public function flowStartCard(): array
     {
         $definition = $this->flowDefinition();
         $flow = $this->currentFlow();
@@ -332,7 +342,7 @@ trait InteractsWithFlowBuilder
         return app(FlowDefinitionRegistry::class)->get($this->flowDefinitionKey());
     }
 
-    private function outcomeLabel(Outcome $outcome, bool $last, FlowDefinition $definition): string
+    private function flowOutcomeLabel(Outcome $outcome, bool $last, FlowDefinition $definition): string
     {
         $where = match (true) {
             $outcome->goesTo === Outcome::START => $definition->returnLabel(),
@@ -349,13 +359,13 @@ trait InteractsWithFlowBuilder
      *
      * @param  array<string, mixed>  $state
      */
-    private function fillPanel(array $state): void
+    private function fillFlowPanel(array $state): void
     {
         unset($this->cachedSchemas['stepForm']);
         $this->getSchema('stepForm')?->fill($state);
     }
 
-    private function selectStart(): void
+    private function selectFlowStart(): void
     {
         if ($this->flowDefinition()->settingsSchema() === []) {
             return;
@@ -372,7 +382,7 @@ trait InteractsWithFlowBuilder
         return Flow::fromArray($this->flow);
     }
 
-    private function store(Flow $flow): void
+    private function storeFlow(Flow $flow): void
     {
         $this->flow = $flow->toArray();
         $this->flowChanged();

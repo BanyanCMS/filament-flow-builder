@@ -84,9 +84,13 @@
     </section>
 
     <aside class="ffb__panel" aria-label="{{ __('flow-builder::flow.panel.label') }}" data-testid="flow-panel">
+        @if ($this->flowIsReadOnly() && ($startSelected || is_array($selectedCard)))
+            <p class="ffb__readonly">{{ __('flow-builder::flow.read_only') }}</p>
+        @endif
+
         @if ($startSelected)
             <p class="ffb__kind">{{ __('flow-builder::flow.start_kind') }}</p>
-            <h2 class="ffb__panel-title">{{ __('flow-builder::flow.panel.flow_settings') }}</h2>
+            <h2 class="ffb__panel-title">{{ $flowDefinition->settingsLabel() }}</h2>
 
             @foreach ($start['problems'] as $problem)
                 <p class="ffb__problem">{{ $problem }}</p>

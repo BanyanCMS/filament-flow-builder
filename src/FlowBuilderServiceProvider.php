@@ -24,7 +24,10 @@ class FlowBuilderServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'flow-builder');
         $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/flow-builder')], 'flow-builder-translations');
 
-        Livewire::component('flow-builder', FlowBuilder::class);
+        // An app may boot this provider without Livewire (e.g. a headless or console-only host).
+        if ($this->app->bound('livewire')) {
+            Livewire::component('flow-builder', FlowBuilder::class);
+        }
 
         FilamentAsset::register([
             Css::make('flow-builder', __DIR__.'/../resources/css/flow-builder.css'),

@@ -148,6 +148,12 @@ abstract class FlowDefinition
         return Step::newId();
     }
 
+    /** The heading of the Start card's panel. */
+    public function settingsLabel(): string
+    {
+        return __('flow-builder::flow.panel.flow_settings');
+    }
+
     /** What a card says when an outcome sends the item back to the start. */
     public function returnLabel(): string
     {

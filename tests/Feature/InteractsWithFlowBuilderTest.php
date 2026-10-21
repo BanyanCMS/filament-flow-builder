@@ -59,7 +59,7 @@ it('selects the Start card after removing the selected step when the flow has se
         ->assertSet('selected', HostedFlow::FLOW_START);
 });
 
-it('uses the definition for new step ids and the "back" label', function (): void {
+it('uses the definition for new step ids, the "back" label and the Start panel heading', function (): void {
     $definition = new class extends PurchaseFlow
     {
         public function newStepId(): string
@@ -71,11 +71,31 @@ it('uses the definition for new step ids and the "back" label', function (): voi
         {
             return 'back to the requester';
         }
+
+        public function settingsLabel(): string
+        {
+            return 'Purchase rules';
+        }
     };
     app(FlowDefinitionRegistry::class)->register($definition::class);
 
     $test = Livewire::test(HostedFlow::class)->call('insertStep', 0, 'approval');
 
     expect($test->get('flow')['steps'][0]['id'])->toBe('step-fixed');
-    $test->assertSee('back to the requester');
+    $test->assertSee('back to the requester')->call('select', HostedFlow::FLOW_START)->assertSee('Purchase rules');
+});
+
+it('clears the panel\'s field errors when another card is selected, and keeps the others', function (): void {
+    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a'), hostedStep('b')]]])
+        ->call('select', 'a')
+        ->call('selectWithErrors', 'b');
+
+    $test->assertHasNoErrors('stepData.name')->assertHasErrors('other');
+});
+
+it('shows that a read-only flow can only be viewed, on the selected card\'s panel', function (): void {
+    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]], 'locked' => true])
+        ->call('select', 'a')
+        ->assertSee('This flow can only be viewed here.')
+        ->assertDontSee('Remove step');
 });
