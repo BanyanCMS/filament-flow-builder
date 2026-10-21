@@ -61,7 +61,7 @@ return [
     ],
     'condition' => [
         'value_label' => '数值符合',
-        'field' => '数值',
+        'field' => '要检查的值',
         'operator' => '条件',
         'value' => '比较值',
         'sentence' => '只在 :field :operator :value 时',

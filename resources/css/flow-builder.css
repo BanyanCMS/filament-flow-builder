@@ -15,6 +15,8 @@
     --ffb-primary: var(--primary-600, #2563eb);
     --ffb-primary-fg: #fff;
     --ffb-success: var(--success-600, #16a34a);
+    /* Green words need a darker shade than green shapes: 4.5:1 on light surfaces (WCAG 1.4.3). */
+    --ffb-success-text: var(--success-700, #15803d);
     --ffb-warning: var(--warning-600, #d97706);
     --ffb-danger: var(--danger-600, #dc2626);
     --ffb-info: var(--info-600, #0284c7);
@@ -33,6 +35,7 @@
     --ffb-primary: var(--primary-400, #60a5fa);
     --ffb-primary-fg: var(--gray-950, #030712);
     --ffb-success: var(--success-400, #4ade80);
+    --ffb-success-text: var(--success-400, #4ade80);
     --ffb-warning: var(--warning-400, #fbbf24);
     --ffb-danger: var(--danger-400, #f87171);
     --ffb-info: var(--info-400, #38bdf8);
@@ -219,7 +222,7 @@ button.ffb__node:focus-visible,
 }
 
 .ffb__tone { font-weight: 600; }
-.ffb__tone--success { color: var(--ffb-success); }
+.ffb__tone--success { color: var(--ffb-success-text); }
 .ffb__tone--warning { color: color-mix(in oklab, var(--ffb-warning) 70%, var(--ffb-text)); }
 .ffb__tone--danger { color: var(--ffb-danger); }
 .ffb__tone--primary { color: var(--ffb-primary); }
@@ -387,7 +390,7 @@ button.ffb__node:focus-visible,
     font-weight: 650;
 }
 
-.ffb__lane-label--yes { background: color-mix(in oklab, var(--ffb-success) 14%, var(--ffb-surface)); color: var(--ffb-success); }
+.ffb__lane-label--yes { background: color-mix(in oklab, var(--ffb-success) 14%, var(--ffb-surface)); color: var(--ffb-success-text); }
 .ffb__lane-label--no { background: var(--ffb-surface-3); color: var(--ffb-text-muted); }
 
 .ffb__skip {

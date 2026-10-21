@@ -183,9 +183,10 @@ trait InteractsWithFlowBuilder
     /** The panel edits the selected step; every change goes straight back into the flow. */
     public function updatedStepData(mixed $value = null, ?string $key = null): void
     {
-        // A different condition brings different fields: give each of them its key.
+        // A different condition brings different fields: give each of them its key, starting from the condition's defaults.
         if ($key === 'when_type' && ! $this->flowIsReadOnly()) {
-            $this->fillFlowPanel([...$this->stepData, 'when_settings' => []]);
+            $condition = is_string($value) ? $this->flowDefinition()->conditionType($value) : null;
+            $this->fillFlowPanel([...$this->stepData, 'when_settings' => $condition?->defaults($this->flowDefinition()) ?? []]);
         }
 
         $flow = $this->currentFlow();

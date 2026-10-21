@@ -61,7 +61,7 @@ return [
     ],
     'condition' => [
         'value_label' => 'A value matches',
-        'field' => 'Value',
+        'field' => 'What to check',
         'operator' => 'Is',
         'value' => 'Compared with',
         'sentence' => 'Only when :field :operator :value',

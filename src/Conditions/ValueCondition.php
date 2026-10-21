@@ -81,6 +81,13 @@ class ValueCondition implements ConditionType
         };
     }
 
+    public function defaults(FlowDefinition $definition): array
+    {
+        $field = array_key_first($definition->contextFields());
+
+        return ['field' => $field, 'operator' => 'is', 'value' => ''];
+    }
+
     public function validate(array $settings, FlowDefinition $definition): array
     {
         $problems = [];

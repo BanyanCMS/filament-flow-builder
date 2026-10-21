@@ -44,7 +44,8 @@ class ParallelApprovalStep extends AbstractStepType
 
     public function defaults(FlowDefinition $definition): array
     {
-        return ['teams' => []];
+        // Starts with the first two teams, so the step is valid the moment it is added.
+        return ['teams' => array_slice(array_keys($definition->teams()), 0, 2)];
     }
 
     public function schema(FlowDefinition $definition): array

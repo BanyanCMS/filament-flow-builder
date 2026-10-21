@@ -36,4 +36,12 @@ interface ConditionType
      * @return list<string>
      */
     public function validate(array $settings, FlowDefinition $definition): array;
+
+    /**
+     * The settings a step starts with when this condition is chosen, so a
+     * rule is never left empty.
+     *
+     * @return array<string, mixed>
+     */
+    public function defaults(FlowDefinition $definition): array;
 }

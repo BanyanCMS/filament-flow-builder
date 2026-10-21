@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
 use Banyan\FilamentFlowBuilder\Tests\Support\HostedFlow;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
@@ -98,4 +99,13 @@ it('shows that a read-only flow can only be viewed, on the selected card\'s pane
         ->call('select', 'a')
         ->assertSee('This flow can only be viewed here.')
         ->assertDontSee('Remove step');
+});
+
+it('starts a newly chosen condition from its defaults, so the rule is never empty', function (): void {
+    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]]])
+        ->call('select', 'a')
+        ->set('stepData.when_type', ValueCondition::key());
+
+    expect($test->get('stepData.when_settings'))->toBe(['field' => 'amount', 'operator' => 'is', 'value' => ''])
+        ->and($test->get('flow')['steps'][0]['when'])->toBe(['type' => ValueCondition::key(), 'settings' => ['field' => 'amount', 'operator' => 'is', 'value' => '']]);
 });

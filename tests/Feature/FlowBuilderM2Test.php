@@ -119,3 +119,12 @@ it('validates the Start settings with the steps', function (): void {
         ->and(Step::days('0'))->toBeNull()
         ->and(Step::days('7'))->toBe(7);
 });
+
+it('starts a parallel review with the first two teams, so it is valid as soon as it is added', function (): void {
+    $test = m2Builder()->call('insertStep', 0, 'parallel-approval');
+    $step = $test->get('flow')['steps'][0];
+    $teams = array_slice(array_keys((new PurchaseFlow)->teams()), 0, 2);
+
+    expect($step['settings']['teams'])->toBe($teams)
+        ->and(app(FlowValidator::class)->problems(Flow::fromArray($test->get('flow')), new PurchaseFlow))->toBe([]);
+});
