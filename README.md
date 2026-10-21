@@ -8,6 +8,8 @@ A visual, card-based **workflow builder for Filament v5**: approval chains, revi
 
 It is a standalone Filament plugin. It needs no other Banyan package and has no database tables of its own: a flow is plain data that you store in a JSON column. It was extracted from [Banyan CMS](https://github.com/BanyanCMS/banyan), whose *Settings → Workflows* runs on it. Licensed **MIT**.
 
+> **Building a real process?** Read the **[usage guide](docs/guide.md)**. It walks through a complete, tested example (purchase requests): matching approvers to your users, status, Approve and Request changes, "any / all / a number / every team" rules, what happens when something fails midway, the audit log, notifications and reminders.
+
 > **Where to change it:** the source lives in the Banyan monorepo at `packages/filament-flow-builder`. This repository is its published split. Open issues and pull requests against the [monorepo](https://github.com/BanyanCMS/banyan).
 
 ---
@@ -24,6 +26,7 @@ It is a standalone Filament plugin. It needs no other Banyan package and has no 
 - [Conditions](#conditions)
 - [Running a flow (the API)](#running-a-flow-the-api)
 - [Two ways to put the builder on a page](#two-ways-to-put-the-builder-on-a-page)
+- [A real example: purchase requests](#a-real-example-purchase-requests)
 - [The stored data](#the-stored-data)
 - [Look and feel, dark mode, languages](#look-and-feel-dark-mode-languages)
 - [Reference](#reference)
@@ -515,6 +518,30 @@ class EditPurchaseFlow extends Page
 ```
 
 A page that needs a definition built with context (the current tenant, a record id) can override `flowDefinition()` and return its own instance. The stand-alone Livewire component `Banyan\FilamentFlowBuilder\Livewire\FlowBuilder` (`<livewire:flow-builder definition="purchase" wire:model="flow" />`) uses the same trait.
+
+---
+
+## A real example: purchase requests
+
+[`examples/PurchaseRequests`](examples/PurchaseRequests) is a complete, tested app module built on the plugin:
+
+- administrators design approval flows;
+- staff submit purchase requests;
+- managers, teams and directors approve or ask for changes;
+- every move is logged.
+
+The [usage guide](docs/guide.md) explains it piece by piece.
+
+![A request's status and its audit log](docs/images/example-history.png)
+
+| Question | Where the guide answers it |
+|---|---|
+| How do approver keys match the users of my system? | [§3](docs/guide.md#3-matching-approvers-to-the-users-of-your-system) |
+| How does the item's status follow the flow? | [§4](docs/guide.md#4-status-from-where-it-is-in-the-flow-to-what-users-see) |
+| How do Approve and Request changes work? What about "all of them", "a number" and parallel teams? | [§5](docs/guide.md#5-actions-how-approve-and-request-changes-work) |
+| Who may act, and how do I enforce it? | [§6](docs/guide.md#6-control-who-may-do-what) |
+| What if it fails midway: nobody can act, the flow changed, it waits too long? | [§7](docs/guide.md#7-when-things-go-wrong-in-the-middle-of-a-flow) |
+| How do I keep an audit log? | [§8](docs/guide.md#8-the-audit-log) |
 
 ---
 

@@ -39,7 +39,8 @@
     "autoload-dev": {
         "psr-4": {
             "Banyan\\FilamentFlowBuilder\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "Workbench\\App\\": "workbench/app/",
+            "Banyan\\FilamentFlowBuilder\\Examples\\": "examples/"
         }
     },
     "extra": {

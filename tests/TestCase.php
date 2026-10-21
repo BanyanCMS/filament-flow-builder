@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Banyan\FilamentFlowBuilder\Tests;
 
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Examples\PurchaseRequests\PurchaseRequestsServiceProvider;
 use Banyan\FilamentFlowBuilder\FlowBuilderServiceProvider;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
@@ -47,6 +48,8 @@ abstract class TestCase extends Orchestra
             FilamentServiceProvider::class,
             LivewireServiceProvider::class,
             FlowBuilderServiceProvider::class,
+            // The worked example (examples/PurchaseRequests): its tests run migrations, the rest never touch the database.
+            PurchaseRequestsServiceProvider::class,
         ];
     }
 
