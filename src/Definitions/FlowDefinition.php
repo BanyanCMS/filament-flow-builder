@@ -6,8 +6,15 @@ namespace Banyan\FilamentFlowBuilder\Definitions;
 
 use Banyan\FilamentFlowBuilder\Conditions\ConditionType;
 use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
+use Banyan\FilamentFlowBuilder\Data\Flow;
+use Banyan\FilamentFlowBuilder\Data\Step;
 use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
 use Banyan\FilamentFlowBuilder\Steps\StepType;
+use Banyan\FilamentFlowBuilder\Testing\FlowTestResult;
+use Banyan\FilamentFlowBuilder\Testing\FlowWalker;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
 use Illuminate\Support\Str;
 
 /**
@@ -68,9 +75,83 @@ abstract class FlowDefinition
         return [];
     }
 
+    /** @return array<string, string> team id => name, for the built-in parallel step */
+    public function teams(): array
+    {
+        return [];
+    }
+
+    /**
+     * The flow's own settings, edited when someone selects the Start card
+     * (name, what it applies to, …). Stored in the flow under "settings".
+     *
+     * @return list<Component|Field>
+     */
+    public function settingsSchema(): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $settings
+     * @return list<string> chips on the Start card
+     */
+    public function startSummary(array $settings): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $settings
+     * @return list<string> what is wrong with the flow's own settings
+     */
+    public function validateSettings(array $settings): array
+    {
+        return [];
+    }
+
+    /**
+     * What "Test it as…" asks for: by default one field per context value.
+     *
+     * @return list<Component|Field>
+     */
+    public function testSchema(): array
+    {
+        $fields = [];
+
+        foreach ($this->contextFields() as $key => $label) {
+            $fields[] = TextInput::make($key)->label($label)->live(onBlur: true);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * "Test it as…": what happens to an item with this input. Override it to
+     * run your own engine; the default walks the flow on screen.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    public function test(Flow $flow, array $input): FlowTestResult
+    {
+        return app(FlowWalker::class)->walk($this, $flow, $input);
+    }
+
     public function maxSteps(): int
     {
         return 30;
+    }
+
+    /** The id a new step gets; override to match ids your app already stores. */
+    public function newStepId(): string
+    {
+        return Step::newId();
+    }
+
+    /** What a card says when an outcome sends the item back to the start. */
+    public function returnLabel(): string
+    {
+        return __('flow-builder::flow.goes_start');
     }
 
     /** @return array<string, StepType> */

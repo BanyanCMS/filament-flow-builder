@@ -6,6 +6,9 @@ namespace Banyan\FilamentFlowBuilder\Tests\Support;
 
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
+use Banyan\FilamentFlowBuilder\Steps\ParallelApprovalStep;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 
 /** A purchase request: the kind of flow an app defines in a few lines. */
 class PurchaseFlow extends FlowDefinition
@@ -17,7 +20,7 @@ class PurchaseFlow extends FlowDefinition
 
     protected function stepTypeClasses(): array
     {
-        return [ApprovalStep::class, BudgetCheckStep::class];
+        return [ApprovalStep::class, BudgetCheckStep::class, ParallelApprovalStep::class];
     }
 
     public function startLabel(): string
@@ -38,5 +41,29 @@ class PurchaseFlow extends FlowDefinition
     public function contextFields(): array
     {
         return ['amount' => 'Amount (HKD)', 'department' => 'Department'];
+    }
+
+    public function teams(): array
+    {
+        return ['legal' => 'Legal', 'it' => 'IT', 'finance' => 'Finance'];
+    }
+
+    public function settingsSchema(): array
+    {
+        return [
+            TextInput::make('title')->label('Flow name')->live(onBlur: true),
+            Toggle::make('urgent')->label('Urgent purchases')->live(),
+        ];
+    }
+
+    public function startSummary(array $settings): array
+    {
+        return is_string($settings['title'] ?? null) && $settings['title'] !== '' ? [$settings['title']] : [];
+    }
+
+    public function validateSettings(array $settings): array
+    {
+        // Only once someone has started on the settings, so older flows stay valid.
+        return array_key_exists('title', $settings) && trim(is_string($settings['title']) ? $settings['title'] : '') === '' ? ['Give the flow a name.'] : [];
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'reminder_chip' => '{1} :days 天后提醒|[2,*] :days 天后提醒',
     'canvas' => '流程',
     'start_kind' => '开始',
     'finish_kind' => '完成',
@@ -30,6 +31,10 @@ return [
     'unknown_step_type' => '此类步骤（:type）已不再提供。',
     'unknown_condition_type' => '此条件（:type）已不再提供。',
     'panel' => [
+        'reminder' => '提醒时间',
+        'reminder_help' => '如果到时仍未有人处理，就发出提醒。留空即不提醒。',
+        'days' => '天',
+        'flow_settings' => '流程设置',
         'label' => '步骤设置',
         'name' => '名称',
         'when' => '只在以下情况',
@@ -69,5 +74,28 @@ return [
             'less_than' => '小于',
             'contains' => '包含',
         ],
+    ],
+    'parallel' => [
+        'label' => '并行审批',
+        'description' => '两个或以上团队同时审批。',
+        'teams' => '团队',
+        'teams_help' => '每个团队各自批准；全部团队批准后才完成此步骤。',
+        'each' => '每个团队都要批准',
+        'all_approved' => '全部团队批准',
+        'two_teams' => '请选择至少两个团队。',
+    ],
+    'test' => [
+        'button' => '模拟测试…',
+        'heading' => '测试此流程',
+        'help' => '填写项目的资料，即可看到它在当前画面上的流程会怎样走；不会保存任何内容。',
+        'close' => '关闭',
+        'route' => '流程经过',
+        'outcome' => '最终结果',
+        'no_steps' => '还没有步骤。',
+        'skipped' => '跳过“:step”（:why）。',
+        'passed' => '“:step”：:outcome',
+        'stuck_at' => '“:step”没有可以前进的出口。',
+        'outcome_finished' => ':finish',
+        'outcome_stuck' => '停在“:step”',
     ],
 ];

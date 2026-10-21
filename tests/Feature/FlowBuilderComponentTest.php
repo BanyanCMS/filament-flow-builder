@@ -22,8 +22,8 @@ it('draws the start and finish the app defined, and offers its step types under 
         ->assertSee('Order placed')
         ->assertSeeHtml('data-testid="flow-plus-0"')
         ->assertSee('Approval')
-        ->assertSee('Budget check')
-        ->assertSee('Confirm the budget code has room for it.')
+        ->assertSee('IT budget check')
+        ->assertSee('Budget code IT-01.')
         ->assertSee('Select a step to change it, or use + to add one.');
 });
 
@@ -47,7 +47,7 @@ it('adds a step at a +, selects it and edits it from the panel', function (): vo
 });
 
 it('puts a condition on a step and shows the yes/no branch', function (): void {
-    $test = builder()->call('insertStep', 0, 'budget-check');
+    $test = builder()->call('insertStep', 0, 'budget-check', 'it');
     $id = builderSteps($test)[0]['id'];
 
     $test->set('stepData.when_type', 'value')
@@ -82,7 +82,7 @@ it('reorders by drag or by the card menu, and removes a step', function (): void
     $test->call('moveStepUp', 'b');
     expect($ids())->toBe(['a', 'b', 'c']);
 
-    $test->call('select', 'b')->call('removeStep', 'b')->assertSet('selected', null);
+    $test->call('select', 'b')->call('removeStep', 'b')->assertSet('selected', FlowBuilder::FLOW_START);
     expect($ids())->toBe(['a', 'c']);
 });
 

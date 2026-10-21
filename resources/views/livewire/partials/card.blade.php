@@ -31,7 +31,7 @@
         @endforeach
     </button>
 
-    @unless ($this->readOnly)
+    @unless ($this->flowIsReadOnly())
         <div class="ffb__tools">
             <span class="ffb__drag" aria-hidden="true" title="{{ __('flow-builder::flow.drag', ['name' => $name]) }}">
                 <x-filament::icon icon="heroicon-m-bars-2" />

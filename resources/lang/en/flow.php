@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'reminder_chip' => '{1} Reminder after :days day|[2,*] Reminder after :days days',
     'canvas' => 'Flow',
     'start_kind' => 'Start',
     'finish_kind' => 'Finish',
@@ -30,6 +31,10 @@ return [
     'unknown_step_type' => 'This kind of step (:type) is no longer available.',
     'unknown_condition_type' => 'This condition (:type) is no longer available.',
     'panel' => [
+        'reminder' => 'Remind after',
+        'reminder_help' => 'Send a reminder if nobody has acted by then. Leave empty for none.',
+        'days' => 'days',
+        'flow_settings' => 'Flow settings',
         'label' => 'Step settings',
         'name' => 'Name',
         'when' => 'Only when',
@@ -69,5 +74,28 @@ return [
             'less_than' => 'is less than',
             'contains' => 'contains',
         ],
+    ],
+    'parallel' => [
+        'label' => 'Parallel review',
+        'description' => 'Two or more teams review at the same time.',
+        'teams' => 'Teams',
+        'teams_help' => 'Each team approves on its own; the step is done when every team has.',
+        'each' => 'each team approves',
+        'all_approved' => 'All teams approve',
+        'two_teams' => 'Choose at least two teams.',
+    ],
+    'test' => [
+        'button' => 'Test it as…',
+        'heading' => 'Test this flow',
+        'help' => 'Fill in what you know about an item. You see what would happen to it in the flow as it is on screen; nothing is saved.',
+        'close' => 'Close',
+        'route' => 'What happens',
+        'outcome' => 'Where it ends up',
+        'no_steps' => 'There are no steps yet.',
+        'skipped' => ':step is skipped (:why).',
+        'passed' => ':step: :outcome',
+        'stuck_at' => ':step has no way forward.',
+        'outcome_finished' => ':finish',
+        'outcome_stuck' => 'Waits at :step',
     ],
 ];

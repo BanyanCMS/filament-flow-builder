@@ -6,6 +6,7 @@ namespace Banyan\FilamentFlowBuilder\Steps;
 
 use Banyan\FilamentFlowBuilder\Data\Outcome;
 use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\StepPreset;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 
 /**
@@ -52,5 +53,30 @@ abstract class AbstractStepType implements StepType
     public function validate(Step $step, FlowDefinition $definition): array
     {
         return [];
+    }
+
+    public function presets(FlowDefinition $definition): array
+    {
+        return [new StepPreset('default', $this->label(), $this->description(), $this->icon(), $this->label(), $this->defaults($definition))];
+    }
+
+    public function cardKind(Step $step, FlowDefinition $definition): string
+    {
+        return $this->label();
+    }
+
+    public function cardIcon(Step $step, FlowDefinition $definition): string
+    {
+        return $this->icon();
+    }
+
+    public function cardColor(Step $step, FlowDefinition $definition): string
+    {
+        return $this->color();
+    }
+
+    public function remindable(): bool
+    {
+        return false;
     }
 }

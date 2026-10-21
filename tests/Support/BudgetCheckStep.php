@@ -6,6 +6,7 @@ namespace Banyan\FilamentFlowBuilder\Tests\Support;
 
 use Banyan\FilamentFlowBuilder\Data\Outcome;
 use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\StepPreset;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Banyan\FilamentFlowBuilder\Steps\AbstractStepType;
 use Filament\Forms\Components\TextInput;
@@ -67,5 +68,23 @@ final class BudgetCheckStep extends AbstractStepType
     public function validate(Step $step, FlowDefinition $definition): array
     {
         return ($step->settings['budget_code'] ?? '') === '' ? ['Give the budget code.'] : [];
+    }
+
+    public function presets(FlowDefinition $definition): array
+    {
+        return [
+            new StepPreset('it', 'IT budget check', 'Budget code IT-01.', null, 'IT budget', ['budget_code' => 'IT-01'], null, 3),
+            new StepPreset('marketing', 'Marketing budget check', 'Budget code MK-01.', null, 'Marketing budget', ['budget_code' => 'MK-01']),
+        ];
+    }
+
+    public function cardKind(Step $step, FlowDefinition $definition): string
+    {
+        return ($step->settings['budget_code'] ?? '') === 'IT-01' ? 'IT budget' : $this->label();
+    }
+
+    public function remindable(): bool
+    {
+        return true;
     }
 }

@@ -73,6 +73,34 @@ FlowBuilderField::make('approval_flow')->definition(PurchaseFlow::class)
 
 The field's state is plain data (`{"steps": [...]}`); store it in a JSON column. A flow with problems (a step without approvers, a condition without a value, …) does not save. Each problem is shown in red on its card.
 
+### Or host the canvas on your own page
+
+When a page needs its own save, checks or header actions around the canvas, use the trait instead of the field:
+
+```php
+use Banyan\FilamentFlowBuilder\Concerns\InteractsWithFlowBuilder;
+
+class EditPurchaseFlow extends Page   // any Livewire component with Filament actions and schemas
+{
+    use InteractsWithFlowBuilder;
+
+    public array $flow = ['steps' => []];
+
+    public function flowDefinitionKey(): string { return 'purchase'; }
+
+    protected function flowChanged(): void { $this->unsaved = true; }   // optional hooks:
+    // flowIsReadOnly(), flowIsTestable(), flowFull(int $max)
+
+    public function save(): void
+    {
+        // Problems your own store finds, keyed by step id (or "start"), show in red on the cards.
+        $this->flowProblems = $store->save($this->flow);
+    }
+}
+```
+
+In its view: `@include('flow-builder::canvas')`.
+
 ## 3. Add your own steps
 
 Extend `AbstractStepType` (or implement `StepType`):
@@ -114,6 +142,17 @@ class BudgetCheckStep extends AbstractStepType
     }
 }
 ```
+
+A step type can also:
+- offer **presets** (`presets()`): several entries under "+" that start the step with different settings, e.g. one per team;
+- take a **reminder** (`remindable()`): the panel gets "Remind after … days", saved as `reminder_days` for your app to act on;
+- draw its own card (`cardKind()`, `cardIcon()`, `cardColor()`) from the step's settings.
+
+`ParallelApprovalStep` is built in: several teams review at once, from your definition's `teams()`.
+
+**Flow settings:** return fields from `settingsSchema()` on your definition and the Start card opens them (saved under `settings`). `startSummary()` puts chips on it and `validateSettings()` checks them.
+
+**"Test it as…":** the toolbar button asks for your `contextFields()` and walks the flow on screen: which steps apply, which are skipped, where it ends. Override `test()` to run your own simulator.
 
 ## 4. Add your own conditions
 
@@ -168,4 +207,4 @@ Every colour comes from the panel's own palette (`--primary-*`, `--gray-*`, `--s
 
 1. **M1: the plugin** ✅ Data, field, canvas, drag, conditions, validator, runner, events, three languages, tests.
 2. **M2: Banyan uses it.** Banyan's *Settings → Workflows* renders through this plugin, with no change in behaviour.
-3. **M3: demo and docs.** Screenshots, more built-in step types if useful (parallel approval, notify-only), and a Packagist release when ready.
+3. **M3: demo and docs.** Screenshots, more built-in step types if useful (notify-only), and a Packagist release when ready.

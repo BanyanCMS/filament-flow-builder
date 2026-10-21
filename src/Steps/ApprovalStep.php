@@ -112,6 +112,11 @@ class ApprovalStep extends AbstractStepType
         return is_numeric($value) ? (int) $value : 0;
     }
 
+    public function remindable(): bool
+    {
+        return true;
+    }
+
     /** @return list<string> */
     private function approverNames(Step $step, FlowDefinition $definition): array
     {

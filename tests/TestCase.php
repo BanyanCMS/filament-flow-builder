@@ -28,6 +28,7 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         app(FlowDefinitionRegistry::class)->register(PurchaseFlow::class);
+        app('view')->addNamespace('flow-builder-test', __DIR__.'/Support/views');
     }
 
     protected function getPackageProviders($app): array

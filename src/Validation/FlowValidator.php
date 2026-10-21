@@ -23,6 +23,12 @@ final class FlowValidator
             $problems['flow'][] = (string) __('flow-builder::flow.too_many_steps', ['max' => $definition->maxSteps()]);
         }
 
+        $start = $definition->validateSettings($flow->settings);
+
+        if ($start !== []) {
+            $problems['start'] = $start;
+        }
+
         foreach ($flow->steps as $step) {
             $type = $definition->stepType($step->type);
             $found = [];

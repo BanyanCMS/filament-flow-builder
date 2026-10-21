@@ -6,6 +6,7 @@ namespace Banyan\FilamentFlowBuilder\Steps;
 
 use Banyan\FilamentFlowBuilder\Data\Outcome;
 use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\StepPreset;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Filament\Forms\Components\Field;
 use Filament\Schemas\Components\Component;
@@ -48,4 +49,23 @@ interface StepType
 
     /** @return list<string> what is wrong with this step, in the person's words */
     public function validate(Step $step, FlowDefinition $definition): array;
+
+    /**
+     * What "+" offers for this type: one entry by default, several when the
+     * type has ready-made variants (a team, a condition, …).
+     *
+     * @return list<StepPreset>
+     */
+    public function presets(FlowDefinition $definition): array;
+
+    /** The small line above the name on the card; may depend on the step's settings. */
+    public function cardKind(Step $step, FlowDefinition $definition): string;
+
+    public function cardIcon(Step $step, FlowDefinition $definition): string;
+
+    /** @return 'primary'|'warning'|'success'|'danger'|'info'|'gray' */
+    public function cardColor(Step $step, FlowDefinition $definition): string;
+
+    /** Whether the panel offers "Remind after … days" for steps of this type. */
+    public function remindable(): bool;
 }

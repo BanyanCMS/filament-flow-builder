@@ -11,8 +11,11 @@ namespace Banyan\FilamentFlowBuilder\Data;
  */
 final readonly class Flow
 {
-    /** @param list<Step> $steps */
-    public function __construct(public array $steps = []) {}
+    /**
+     * @param  list<Step>  $steps
+     * @param  array<string, mixed>  $settings  the flow's own settings, edited on the Start card
+     */
+    public function __construct(public array $steps = [], public array $settings = []) {}
 
     public static function fromArray(mixed $data): self
     {
@@ -28,20 +31,26 @@ final readonly class Flow
 
             // Ids are unique within a flow; a duplicate gets a fresh one.
             if (isset($seen[$step->id])) {
-                $step = new Step(Step::newId(), $step->type, $step->name, $step->settings, $step->when);
+                $step = new Step(Step::newId(), $step->type, $step->name, $step->settings, $step->when, $step->reminderDays);
             }
 
             $seen[$step->id] = true;
             $steps[] = $step;
         }
 
-        return new self($steps);
+        return new self($steps, Condition::stringKeyed(is_array($data) ? ($data['settings'] ?? []) : []));
     }
 
-    /** @return array{steps: list<array<string, mixed>>} */
+    /** @return array{steps: list<array<string, mixed>>, settings: array<string, mixed>} */
     public function toArray(): array
     {
-        return ['steps' => array_map(static fn (Step $step): array => $step->toArray(), $this->steps)];
+        return ['steps' => array_map(static fn (Step $step): array => $step->toArray(), $this->steps), 'settings' => $this->settings];
+    }
+
+    /** @param array<string, mixed> $settings */
+    public function withSettings(array $settings): self
+    {
+        return new self($this->steps, $settings);
     }
 
     public function find(string $id): ?Step
@@ -71,17 +80,17 @@ final readonly class Flow
         $steps = $this->steps;
         array_splice($steps, max(0, min($position, count($steps))), 0, [$step]);
 
-        return new self($steps);
+        return new self($steps, $this->settings);
     }
 
     public function replace(Step $step): self
     {
-        return new self(array_map(static fn (Step $current): Step => $current->id === $step->id ? $step : $current, $this->steps));
+        return new self(array_map(static fn (Step $current): Step => $current->id === $step->id ? $step : $current, $this->steps), $this->settings);
     }
 
     public function remove(string $id): self
     {
-        return new self(array_values(array_filter($this->steps, static fn (Step $step): bool => $step->id !== $id)));
+        return new self(array_values(array_filter($this->steps, static fn (Step $step): bool => $step->id !== $id)), $this->settings);
     }
 
     /** Moves a step to sit before the step now at $position ("+" rows are numbered 0…count). */

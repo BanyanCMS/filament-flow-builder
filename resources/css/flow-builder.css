@@ -113,6 +113,16 @@ button.ffb__node {
     padding-inline-end: 4.5rem;
 }
 
+button.ffb__node--button {
+    cursor: pointer;
+}
+
+.ffb__toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: -1.25rem 0.5rem 1rem;
+}
+
 .ffb__node--fixed {
     padding: 0.75rem 1rem;
 }

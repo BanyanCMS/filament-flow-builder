@@ -19,6 +19,7 @@ final readonly class Step
         public string $name = '',
         public array $settings = [],
         public ?Condition $when = null,
+        public ?int $reminderDays = null,
     ) {}
 
     public static function newId(): string
@@ -35,10 +36,11 @@ final readonly class Step
             name: array_key_exists('name', $changes) && is_string($changes['name']) ? $changes['name'] : $this->name,
             settings: array_key_exists('settings', $changes) ? Condition::stringKeyed($changes['settings']) : $this->settings,
             when: array_key_exists('when', $changes) ? Condition::fromArray($changes['when']) : $this->when,
+            reminderDays: array_key_exists('reminder_days', $changes) ? self::days($changes['reminder_days']) : $this->reminderDays,
         );
     }
 
-    /** @return array{id: string, type: string, name: string, settings: array<string, mixed>, when: array{type: string, settings: array<string, mixed>}|null} */
+    /** @return array{id: string, type: string, name: string, settings: array<string, mixed>, when: array{type: string, settings: array<string, mixed>}|null, reminder_days: int|null} */
     public function toArray(): array
     {
         return [
@@ -47,6 +49,7 @@ final readonly class Step
             'name' => $this->name,
             'settings' => $this->settings,
             'when' => $this->when?->toArray(),
+            'reminder_days' => $this->reminderDays,
         ];
     }
 
@@ -64,6 +67,13 @@ final readonly class Step
             name: is_string($data['name'] ?? null) ? $data['name'] : '',
             settings: Condition::stringKeyed($data['settings'] ?? []),
             when: Condition::fromArray($data['when'] ?? null),
+            reminderDays: self::days($data['reminder_days'] ?? null),
         );
+    }
+
+    /** A reminder of 1 to 365 days, or none. */
+    public static function days(mixed $value): ?int
+    {
+        return is_numeric($value) && (int) $value >= 1 ? min(365, (int) $value) : null;
     }
 }
