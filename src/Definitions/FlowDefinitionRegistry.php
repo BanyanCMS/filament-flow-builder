@@ -9,6 +9,12 @@ use InvalidArgumentException;
 /**
  * The flow definitions an app registered, by key. The builder component is
  * given a key, never a class name from the browser.
+ *
+ * It is one registry for the whole app (a container singleton), not one per
+ * panel: every panel's plugin registers into it, so a definition added by one
+ * panel can be named by a component in another. The last class registered
+ * under a key wins, which is how an app swaps a definition for its own
+ * subclass; it also means two panels must not reuse a key for different flows.
  */
 final class FlowDefinitionRegistry
 {

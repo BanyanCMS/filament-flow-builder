@@ -13,13 +13,13 @@ use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Banyan\FilamentFlowBuilder\Validation\FlowValidator;
 use Livewire\Livewire;
 
-function m2Builder(array $flow = ['steps' => []], bool $testable = true): mixed
+function flowBuilderM2(array $flow = ['steps' => []], bool $testable = true): mixed
 {
     return Livewire::test(FlowBuilder::class, ['definition' => 'purchase', 'flow' => $flow, 'testable' => $testable]);
 }
 
 it('offers every preset of a step type under +, and starts the step from it', function (): void {
-    $test = m2Builder()
+    $test = flowBuilderM2()
         ->assertSee('IT budget check')
         ->assertSee('Marketing budget check')
         ->assertSee('Parallel review')
@@ -33,7 +33,7 @@ it('offers every preset of a step type under +, and starts the step from it', fu
 });
 
 it('lets a step type draw its card from the step, and keeps a reminder on remindable steps', function (): void {
-    $test = m2Builder()->call('insertStep', 0, 'budget-check', 'it');
+    $test = flowBuilderM2()->call('insertStep', 0, 'budget-check', 'it');
 
     expect($test->get('flow')['steps'][0]['reminder_days'])->toBe(3);
 
@@ -49,7 +49,7 @@ it('lets a step type draw its card from the step, and keeps a reminder on remind
 });
 
 it('edits the flow\'s own settings on the Start card and shows their problems there', function (): void {
-    $test = m2Builder(['steps' => [], 'settings' => ['title' => '']])
+    $test = flowBuilderM2(['steps' => [], 'settings' => ['title' => '']])
         ->assertSee('Give the flow a name.')
         ->call('select', FlowBuilder::FLOW_START)
         ->assertSet('selected', FlowBuilder::FLOW_START)
@@ -100,13 +100,13 @@ it('tests the flow on screen: skipped, passed and where it ends', function (): v
 it('shows a Test it as… button above the canvas that walks the unsaved flow', function (): void {
     $flow = ['steps' => [['id' => 'm', 'type' => 'approval', 'name' => 'Manager', 'settings' => ['approvers' => ['manager']]]], 'settings' => ['title' => 'x']];
 
-    m2Builder($flow)
+    flowBuilderM2($flow)
         ->assertSee('Test it as…')
         ->mountAction('test')
         ->assertActionMounted('test');
     // The modal arrives as a Livewire partial; its content is checked in a browser.
 
-    m2Builder($flow, testable: false)->assertDontSee('Test it as…');
+    flowBuilderM2($flow, testable: false)->assertDontSee('Test it as…');
 
     expect(TestFlowAction::getDefaultName())->toBe('testFlow');
 });
@@ -121,7 +121,7 @@ it('validates the Start settings with the steps', function (): void {
 });
 
 it('starts a parallel review with the first two teams, so it is valid as soon as it is added', function (): void {
-    $test = m2Builder()->call('insertStep', 0, 'parallel-approval');
+    $test = flowBuilderM2()->call('insertStep', 0, 'parallel-approval');
     $step = $test->get('flow')['steps'][0];
     $teams = array_slice(array_keys((new PurchaseFlow)->teams()), 0, 2);
 

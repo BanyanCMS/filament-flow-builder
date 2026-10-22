@@ -7,7 +7,9 @@ namespace Banyan\FilamentFlowBuilder\Tests;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
 use Banyan\FilamentFlowBuilder\Examples\PurchaseRequests\PurchaseRequestsServiceProvider;
 use Banyan\FilamentFlowBuilder\FlowBuilderServiceProvider;
+use Banyan\FilamentFlowBuilder\Tests\Support\AdminPanelProvider;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
+use Banyan\FilamentFlowBuilder\Tests\Support\StaffPanelProvider;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use Filament\Actions\ActionsServiceProvider;
@@ -48,6 +50,9 @@ abstract class TestCase extends Orchestra
             FilamentServiceProvider::class,
             LivewireServiceProvider::class,
             FlowBuilderServiceProvider::class,
+            // Two panels on one app, for the multi-panel tests.
+            AdminPanelProvider::class,
+            StaffPanelProvider::class,
             // The worked example (examples/PurchaseRequests): its tests run migrations, the rest never touch the database.
             PurchaseRequestsServiceProvider::class,
         ];

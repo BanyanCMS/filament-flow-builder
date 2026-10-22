@@ -15,7 +15,7 @@ use Banyan\FilamentFlowBuilder\Runtime\Position;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Illuminate\Support\Facades\Event;
 
-function purchaseFlow(): Flow
+function flowBuilderPurchaseFlow(): Flow
 {
     return new Flow([
         new Step('manager', 'approval', 'Manager', ['approvers' => ['manager']]),
@@ -28,7 +28,7 @@ it('walks an item through the steps, skipping one whose condition does not hold'
     Event::fake();
     $runner = app(FlowRunner::class);
     $definition = new PurchaseFlow;
-    $flow = purchaseFlow();
+    $flow = flowBuilderPurchaseFlow();
 
     $at = $runner->start($definition, $flow, ['amount' => 500]);
     expect($at)->toEqual(Position::at('manager'));
@@ -50,7 +50,7 @@ it('sends an item back to the start, or straight to the finish, as the outcome s
     Event::fake();
     $runner = app(FlowRunner::class);
     $definition = new PurchaseFlow;
-    $flow = purchaseFlow();
+    $flow = flowBuilderPurchaseFlow();
     $atBudget = Position::at('budget');
 
     expect($runner->decide($definition, $flow, $atBudget, 'no-budget')->isReturned())->toBeTrue()
@@ -64,9 +64,9 @@ it('sends an item back to the start, or straight to the finish, as the outcome s
 it('refuses an outcome a step does not have, or a position outside the flow', function (): void {
     $runner = app(FlowRunner::class);
 
-    expect(fn () => $runner->decide(new PurchaseFlow, purchaseFlow(), Position::at('manager'), 'funded'))->toThrow(InvalidArgumentException::class)
-        ->and(fn () => $runner->decide(new PurchaseFlow, purchaseFlow(), Position::at('gone'), 'approve'))->toThrow(InvalidArgumentException::class)
-        ->and(fn () => $runner->decide(new PurchaseFlow, purchaseFlow(), Position::finished(), 'approve'))->toThrow(InvalidArgumentException::class);
+    expect(fn () => $runner->decide(new PurchaseFlow, flowBuilderPurchaseFlow(), Position::at('manager'), 'funded'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $runner->decide(new PurchaseFlow, flowBuilderPurchaseFlow(), Position::at('gone'), 'approve'))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $runner->decide(new PurchaseFlow, flowBuilderPurchaseFlow(), Position::finished(), 'approve'))->toThrow(InvalidArgumentException::class);
 });
 
 it('stores a position as plain values', function (): void {

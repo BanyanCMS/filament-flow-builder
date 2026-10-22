@@ -11,6 +11,12 @@ use Filament\Panel;
 
 /**
  * ->plugin(FlowBuilderPlugin::make()->definitions([LeaveRequestFlow::class]))
+ *
+ * The plugin adds no pages, resources or routes of its own: the builder is a
+ * form field and a Livewire component that you put on your own pages. What a
+ * panel contributes is its flow definitions. They go into the app-wide
+ * {@see FlowDefinitionRegistry}, so with two panels the definitions are shared,
+ * not scoped to the panel that listed them.
  */
 class FlowBuilderPlugin implements Plugin
 {
@@ -33,6 +39,12 @@ class FlowBuilderPlugin implements Plugin
         $this->definitions = [...$this->definitions, ...$definitions];
 
         return $this;
+    }
+
+    /** @return list<class-string<FlowDefinition>> */
+    public function getDefinitions(): array
+    {
+        return $this->definitions;
     }
 
     public function register(Panel $panel): void

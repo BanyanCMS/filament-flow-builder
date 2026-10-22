@@ -8,7 +8,7 @@ use Banyan\FilamentFlowBuilder\Tests\Support\HostedFlow;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Livewire\Livewire;
 
-function hostedStep(string $id): array
+function flowBuilderHostedStep(string $id): array
 {
     return ['id' => $id, 'type' => 'approval', 'name' => 'Manager '.$id, 'settings' => ['approvers' => ['manager'], 'rule' => 'any', 'count' => 1], 'when' => null];
 }
@@ -27,7 +27,7 @@ it('puts the canvas on a host page and tells the host about every change', funct
 });
 
 it('shows the problems the host found on the right cards', function (): void {
-    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]]])
+    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a')]]])
         ->assertDontSee('Finance is away this week.')
         ->call('save')
         ->assertSee('Finance is away this week.')
@@ -35,7 +35,7 @@ it('shows the problems the host found on the right cards', function (): void {
 });
 
 it('lets the host say what happens when the flow is full', function (): void {
-    $steps = array_map(hostedStep(...), array_map(strval(...), range(1, 30)));
+    $steps = array_map(flowBuilderHostedStep(...), array_map(strval(...), range(1, 30)));
 
     $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => $steps]])->call('insertStep', 0, 'approval');
 
@@ -44,7 +44,7 @@ it('lets the host say what happens when the flow is full', function (): void {
 });
 
 it('changes nothing when the host says the flow is read-only', function (): void {
-    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a'), hostedStep('b')]], 'locked' => true])
+    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a'), flowBuilderHostedStep('b')]], 'locked' => true])
         ->call('insertStep', 0, 'approval')
         ->call('removeStep', 'a')
         ->call('moveStepDown', 'a');
@@ -54,7 +54,7 @@ it('changes nothing when the host says the flow is read-only', function (): void
 });
 
 it('selects the Start card after removing the selected step when the flow has settings', function (): void {
-    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]]])
+    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a')]]])
         ->call('select', 'a')
         ->call('removeStep', 'a')
         ->assertSet('selected', HostedFlow::FLOW_START);
@@ -87,7 +87,7 @@ it('uses the definition for new step ids, the "back" label and the Start panel h
 });
 
 it('clears the panel\'s field errors when another card is selected, and keeps the others', function (): void {
-    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a'), hostedStep('b')]]])
+    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a'), flowBuilderHostedStep('b')]]])
         ->call('select', 'a')
         ->call('selectWithErrors', 'b');
 
@@ -95,14 +95,14 @@ it('clears the panel\'s field errors when another card is selected, and keeps th
 });
 
 it('shows that a read-only flow can only be viewed, on the selected card\'s panel', function (): void {
-    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]], 'locked' => true])
+    Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a')]], 'locked' => true])
         ->call('select', 'a')
         ->assertSee('This flow can only be viewed here.')
         ->assertDontSee('Remove step');
 });
 
 it('starts a newly chosen condition from its defaults, so the rule is never empty', function (): void {
-    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [hostedStep('a')]]])
+    $test = Livewire::test(HostedFlow::class, ['flow' => ['steps' => [flowBuilderHostedStep('a')]]])
         ->call('select', 'a')
         ->set('stepData.when_type', ValueCondition::key());
 

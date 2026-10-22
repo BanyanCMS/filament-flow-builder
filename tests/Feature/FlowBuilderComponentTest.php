@@ -5,19 +5,19 @@ declare(strict_types=1);
 use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
 use Livewire\Livewire;
 
-function builder(array $flow = ['steps' => []], bool $readOnly = false): mixed
+function flowBuilderTest(array $flow = ['steps' => []], bool $readOnly = false): mixed
 {
     return Livewire::test(FlowBuilder::class, ['definition' => 'purchase', 'flow' => $flow, 'readOnly' => $readOnly]);
 }
 
 /** @return list<array<string, mixed>> */
-function builderSteps(mixed $test): array
+function flowBuilderSteps(mixed $test): array
 {
     return $test->get('flow')['steps'];
 }
 
 it('draws the start and finish the app defined, and offers its step types under +', function (): void {
-    builder()
+    flowBuilderTest()
         ->assertSee('Staff member submits a purchase')
         ->assertSee('Order placed')
         ->assertSeeHtml('data-testid="flow-plus-0"')
@@ -28,8 +28,8 @@ it('draws the start and finish the app defined, and offers its step types under 
 });
 
 it('adds a step at a +, selects it and edits it from the panel', function (): void {
-    $test = builder()->call('insertStep', 0, 'approval');
-    $id = builderSteps($test)[0]['id'];
+    $test = flowBuilderTest()->call('insertStep', 0, 'approval');
+    $id = flowBuilderSteps($test)[0]['id'];
 
     $test->assertSet('selected', $id)
         ->assertSee('Choose who approves.')
@@ -37,8 +37,8 @@ it('adds a step at a +, selects it and edits it from the panel', function (): vo
         ->set('stepData.settings.approvers', ['manager', 'finance'])
         ->set('stepData.settings.rule', 'all');
 
-    expect(builderSteps($test)[0])->toMatchArray(['type' => 'approval', 'name' => 'Line manager approval'])
-        ->and(builderSteps($test)[0]['settings']['approvers'])->toBe(['manager', 'finance']);
+    expect(flowBuilderSteps($test)[0])->toMatchArray(['type' => 'approval', 'name' => 'Line manager approval'])
+        ->and(flowBuilderSteps($test)[0]['settings']['approvers'])->toBe(['manager', 'finance']);
 
     $test->assertSee('All of Line manager, Finance team')
         ->assertSee('Approve → Order placed')
@@ -47,8 +47,8 @@ it('adds a step at a +, selects it and edits it from the panel', function (): vo
 });
 
 it('puts a condition on a step and shows the yes/no branch', function (): void {
-    $test = builder()->call('insertStep', 0, 'budget-check', 'it');
-    $id = builderSteps($test)[0]['id'];
+    $test = flowBuilderTest()->call('insertStep', 0, 'budget-check', 'it');
+    $id = flowBuilderSteps($test)[0]['id'];
 
     $test->set('stepData.when_type', 'value')
         ->set('stepData.when_settings', ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000'])
@@ -56,22 +56,22 @@ it('puts a condition on a step and shows the yes/no branch', function (): void {
         ->assertSee('Only when Amount (HKD) is more than 10000')
         ->assertSee('Skipped');
 
-    expect(builderSteps($test)[0]['when'])->toBe(['type' => 'value', 'settings' => ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000']]);
+    expect(flowBuilderSteps($test)[0]['when'])->toBe(['type' => 'value', 'settings' => ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000']]);
 
     $test->set('stepData.when_type', '__always');
-    expect(builderSteps($test)[0]['when'])->toBeNull();
+    expect(flowBuilderSteps($test)[0]['when'])->toBeNull();
 
     // Selecting the step again shows "Always" for a step without a condition.
     $test->call('select', null)->call('select', $id)->assertSet('stepData.when_type', '__always');
 });
 
 it('reorders by drag or by the card menu, and removes a step', function (): void {
-    $test = builder(['steps' => [
+    $test = flowBuilderTest(['steps' => [
         ['id' => 'a', 'type' => 'approval', 'name' => 'A'],
         ['id' => 'b', 'type' => 'approval', 'name' => 'B'],
         ['id' => 'c', 'type' => 'approval', 'name' => 'C'],
     ]]);
-    $ids = static fn (): array => array_column(builderSteps($test), 'id');
+    $ids = static fn (): array => array_column(flowBuilderSteps($test), 'id');
 
     $test->call('moveStep', 'c', 0);
     expect($ids())->toBe(['c', 'a', 'b']);
@@ -89,7 +89,7 @@ it('reorders by drag or by the card menu, and removes a step', function (): void
 it('changes nothing when read-only, an unknown type is asked for, or the flow is full', function (): void {
     $flow = ['steps' => [['id' => 'a', 'type' => 'approval', 'name' => 'A', 'settings' => ['approvers' => ['manager']]]]];
 
-    $readOnly = builder($flow, readOnly: true)
+    $readOnly = flowBuilderTest($flow, readOnly: true)
         ->call('insertStep', 0, 'approval')
         ->call('removeStep', 'a')
         ->call('moveStep', 'a', 1)
@@ -97,14 +97,14 @@ it('changes nothing when read-only, an unknown type is asked for, or the flow is
         ->set('stepData.name', 'Hacked')
         ->assertDontSeeHtml('data-testid="flow-remove"')
         ->assertDontSeeHtml('draggable="true"');
-    expect(builderSteps($readOnly))->toHaveCount(1)->and(builderSteps($readOnly)[0]['name'])->toBe('A');
+    expect(flowBuilderSteps($readOnly))->toHaveCount(1)->and(flowBuilderSteps($readOnly)[0]['name'])->toBe('A');
 
-    $unknown = builder()->call('insertStep', 0, '<script>');
-    expect(builderSteps($unknown))->toBe([]);
+    $unknown = flowBuilderTest()->call('insertStep', 0, '<script>');
+    expect(flowBuilderSteps($unknown))->toBe([]);
 });
 
 it('marks a step that has a problem in red on its card', function (): void {
-    builder(['steps' => [['id' => 'x', 'type' => 'budget-check', 'name' => 'Budget', 'settings' => []]]])
+    flowBuilderTest(['steps' => [['id' => 'x', 'type' => 'budget-check', 'name' => 'Budget', 'settings' => []]]])
         ->assertSeeHtml('has-problem')
         ->assertSee('Give the budget code.')
         ->assertSee('Funded → Order placed')

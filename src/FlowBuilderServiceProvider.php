@@ -22,7 +22,12 @@ class FlowBuilderServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'flow-builder');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'flow-builder');
-        $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/flow-builder')], 'flow-builder-translations');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath('vendor/flow-builder')], 'flow-builder-translations');
+            // A published view in resources/views/vendor/flow-builder wins over the package's own.
+            $this->publishes([__DIR__.'/../resources/views' => resource_path('views/vendor/flow-builder')], 'flow-builder-views');
+        }
 
         // An app may boot this provider without Livewire (e.g. a headless or console-only host).
         if ($this->app->bound('livewire')) {

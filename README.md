@@ -1,14 +1,16 @@
 # Filament Flow Builder
 
-A visual, card-based **workflow builder for Filament v5**: approval chains, review steps, sign-offs, any process that moves an item through steps.
+**[READ ONLY]** Subtree split of the `filament-flow-builder` package from [BanyanCMS/banyan](https://github.com/BanyanCMS/banyan).
 
-**You** define in PHP which steps and conditions a flow may use. **Your users** then design their own flows in the panel: add steps with "+", drag them into order, add conditions, set reminders, and try a flow out before saving it. A small runner then moves real items through a saved flow and fires events. Notifications, tasks and side effects stay in your app.
+A visual, card-based **workflow builder for Filament v5**. Use it for approval chains, review steps, sign-offs and any process that moves an item through steps.
+
+**You** define in PHP which steps and conditions a flow may use. **Your users** then design their own flows in the panel. They add steps with "+", drag them into order, add conditions, set reminders and try a flow out before saving it. A small runner then moves real items through a saved flow and fires events. Notifications, tasks and side effects stay in your app.
 
 ![The builder: Start, four steps (one of them conditional), Finish, and the settings panel of the selected step](docs/images/builder.png)
 
-It is a standalone Filament plugin. It needs no other Banyan package and has no database tables of its own: a flow is plain data that you store in a JSON column. It was extracted from [Banyan CMS](https://github.com/BanyanCMS/banyan), whose *Settings → Workflows* runs on it. Licensed **MIT**.
+It is a standalone Filament plugin. It needs no other Banyan package and has no database tables of its own. A flow is plain data that you store in a JSON column. It was extracted from [Banyan CMS](https://github.com/BanyanCMS/banyan), whose *Settings → Workflows* runs on it. Licensed **MIT**.
 
-> **Building a real process?** Read the **[usage guide](docs/guide.md)**. It walks through a complete, tested example (purchase requests): matching approvers to your users, status, Approve and Request changes, "any / all / a number / every team" rules, what happens when something fails midway, the audit log, notifications and reminders.
+> **Building a real process?** Read the **[usage guide](docs/guide.md)**. It walks through a complete, tested example (purchase requests). It covers matching approvers to your users, status, Approve and Request changes, "any / all / a number / every team" rules, what happens when something fails midway, the audit log, notifications and reminders.
 
 > **Where to change it:** the source lives in the Banyan monorepo at `packages/filament-flow-builder`. This repository is its published split. Open issues and pull requests against the [monorepo](https://github.com/BanyanCMS/banyan).
 
@@ -17,6 +19,7 @@ It is a standalone Filament plugin. It needs no other Banyan package and has no 
 ## Contents
 
 - [What you get](#what-you-get)
+- [Inspiration and how it compares](#inspiration-and-how-it-compares)
 - [Requirements](#requirements)
 - [Install](#install)
 - [Quick start: an approval flow in five files](#quick-start-an-approval-flow-in-five-files)
@@ -27,10 +30,15 @@ It is a standalone Filament plugin. It needs no other Banyan package and has no 
 - [Running a flow (the API)](#running-a-flow-the-api)
 - [Two ways to put the builder on a page](#two-ways-to-put-the-builder-on-a-page)
 - [A real example: purchase requests](#a-real-example-purchase-requests)
-- [The stored data](#the-stored-data)
+- [Data model and where flow data lives](#data-model-and-where-flow-data-lives)
+- [Using it in more than one panel](#using-it-in-more-than-one-panel)
+- [Customising views and translations](#customising-views-and-translations)
 - [Look and feel, dark mode, languages](#look-and-feel-dark-mode-languages)
+- [Security](#security)
 - [Reference](#reference)
 - [Developing the plugin](#developing-the-plugin)
+- [Roadmap](#roadmap)
+- [Licence](#licence)
 
 ---
 
@@ -50,6 +58,57 @@ It is a standalone Filament plugin. It needs no other Banyan package and has no 
 | **Theming** | It uses the panel's own colours, so it follows your theme and dark mode. |
 | **Languages** | English, Traditional Chinese and Simplified Chinese, publishable. |
 
+## Inspiration and how it compares
+
+### Where the ideas come from
+
+The plugin was built for Banyan, a CMS for government, public bodies and schools. These organisations need approval before content goes live, and they want the people who own the process to change it without a developer. The design borrows from these tools:
+
+- **Drupal Workflows and Content Moderation.** An item moves through states, and the site decides who may move it. Here the steps and rules live in a flow that an administrator edits.
+- **Umbraco workflow add-ons.** Approval groups and a chain of approvers for content. Here the groups are plain keys that your app maps to real users.
+- **Visual flow editors such as Power Automate, Jira workflows and n8n.** A canvas of cards, a "+" to add a step, and a settings panel for the selected card. The builder uses the same pattern, with the step types written in PHP.
+- **BPMN, kept very small.** It has approval tasks, a parallel review and a "send back" path. A step can need one approver, all of them, a number of them, or one person from each team. A flow is one straight list of steps. It has no free-form branches, loops or timers. A condition only skips a step.
+
+Reading the code, this is what it actually does:
+
+- A flow is an ordered list of steps between a fixed Start and Finish.
+- Step types and condition types are PHP classes. Designers can only pick from the ones your definition allows.
+- *Approval* has the rules `any`, `all` and `count`. *Parallel review* waits for every team it lists. Your own step types declare their own outcomes.
+- The runner fires `StepReached`, `StepSkipped`, `OutcomeChosen`, `FlowReturned` and `FlowFinished`. It does not count votes. Your app does that.
+
+The main idea is that **the designer edits a flow, and your app keeps all the facts**. The plugin does not store items, votes, users or logs.
+
+### How it differs from other approval and workflow packages
+
+All of these solve different problems. This summary comes from each project's public page as of October 2026. Check those pages for current details.
+
+| | **This plugin** | [Approvals](https://filamentphp.com/plugins/eightynine-approvals) (Eighty Nine) | [laravel-process-approval](https://github.com/ringlesoft/laravel-process-approval) (RingleSoft) | [FFHS IT Approvals](https://filamentphp.com/plugins/ffhs-it-approvals) | [Flow](https://filamentphp.com/plugins/packstub-flow) (Packstub) | [Workflow Engine](https://filamentphp.com/plugins/leek-workflow-engine) (Leek) |
+| --- | --- | --- | --- | --- | --- | --- |
+| **What it is** | A card-based flow editor for approval chains, plus a small runner | Approval flows for Filament models | Multi-level approval workflows for Eloquent models | Approval workflows for Filament models | Workflow automation on a canvas, with an approval action | Workflow automation for Filament |
+| **Licence** | MIT | MIT | MIT | MIT | MIT | Commercial (listed at $69) |
+| **Visual builder** | Yes, cards with "+" and drag-and-drop | Not listed. Flows and steps come from an admin menu | Not listed. Flows and steps are managed with artisan commands | Not listed. Flows are defined in PHP | Yes, a drag-and-drop canvas | Yes, a drag-and-drop builder |
+| **Who designs flows** | Your users, in the panel | Admins, in the panel | Developers, with artisan commands | Developers, in code | Users, in the panel | Users, in the panel |
+| **Approval rules** | Any one, all, a number, or one per team | Any user in the step's role. "All" is not listed | Each step has an action type, such as approve or check | Roles, specific users or permissions | An "Ask for approval" action with Approved, Rejected and Timed out outputs | Not listed |
+| **Conditions** | "Only when" on a step, with your own condition types | Not listed | Not listed | Not listed | True/False branches | True/False branches |
+| **Return for changes** | Built in (Request changes goes to the start) | Not listed | Submit, approve, reject, return and discard actions | Not listed | Not listed | Not listed |
+| **Storage** | None. You store the flow as JSON and keep the position yourself | Built on laravel-process-approval | Its own tables (four migrations) | Not listed | Waits are stored as database rows | Not listed |
+| **History** | Your events and your table. The example has an audit log | A history view | Relations for approvals | Not listed | Versions of each workflow | Run history with step logs |
+| **Filament versions** | 5 | 3 (no v5 listed) | Not listed | 3 and 4 (no v5 listed) | 4 and 5 | 4 and 5 |
+
+**When to choose another package.**
+
+- You want approvals on a model with no flow editor for your users. Approvals or FFHS IT Approvals fit this.
+- You want a ready-made approval table, buttons and history without writing your own workflow service. This plugin gives you the editor and the runner. You write the rest.
+- You need automation such as triggers, HTTP calls, schedules or queued actions. Packstub Flow and Leek Workflow Engine fit this.
+- You want state transitions on a model, such as draft to published. A state-machine package fits better.
+
+**When to choose this one.**
+
+- Your users, not developers, must design and change the approval chain.
+- You need rules such as "any one", "all", "a number" or "one per team".
+- You want to keep your own users, roles, status and audit log, and use the plugin only for the flow.
+- You need Filament 5 and a permissive MIT licence.
+
 ## Requirements
 
 - PHP 8.3 or newer
@@ -64,7 +123,7 @@ composer require banyancms/filament-flow-builder
 php artisan filament:assets
 ```
 
-The service provider is discovered automatically. `filament:assets` publishes the builder's stylesheet; run it again after updating the package.
+The service provider is discovered automatically. `filament:assets` publishes the builder's stylesheet. Run it again after you update the package.
 
 There are no migrations and no config file.
 
@@ -72,7 +131,7 @@ There are no migrations and no config file.
 
 ## Quick start: an approval flow in five files
 
-This builds a complete example in a fresh Laravel + Filament app: an **Approval flows** resource whose form contains the builder. It is the app the screenshots on this page were taken from.
+This builds a complete example in a fresh Laravel + Filament app: an **Approval flows** resource whose form contains the builder. The screenshots on this page come from this app.
 
 ### 1. Define what a flow may contain
 
@@ -249,13 +308,13 @@ Every "+" between two cards opens the step types your definition allows, and the
 
 ### A step's settings
 
-Selecting a card opens its settings. For the built-in Approval step these are: name, approvers, how many must approve, a reminder, and "Only when …". The panel also shows where each outcome leads.
+Select a card to open its settings. For the built-in Approval step these are the name, the approvers, how many must approve, a reminder, and "Only when …". The panel also shows where each outcome leads.
 
 <img src="docs/images/step-panel.png" alt="The settings panel of an approval step" width="352">
 
 ### Conditions
 
-A step with a condition is drawn as a branch: **Yes** runs the step, **No** skips it.
+A step with a condition is drawn as a branch. **Yes** runs the step. **No** skips it.
 
 ### Flow settings on the Start card
 
@@ -265,13 +324,13 @@ When your definition declares `settingsSchema()`, the Start card becomes clickab
 
 ### Problems
 
-Each problem is shown in red on its card, and the form refuses to save until they are fixed.
+Each problem shows in red on its card. The form will not save until they are fixed.
 
 ![A step with a problem](docs/images/problems.png)
 
 ### Test it as…
 
-The button above the canvas asks for your `contextFields()` and walks the flow as it is on screen: each step it passes and each it skips, and where it ends. Nothing is saved.
+The button above the canvas asks for your `contextFields()` and walks the flow as it is on screen. It shows each step the item passes, each it skips, and where it ends. Nothing is saved.
 
 ![Test it as…](docs/images/test-it-as.png)
 
@@ -283,7 +342,7 @@ The button above the canvas asks for your `contextFields()` and walks the flow a
 
 ## Defining a flow
 
-A **flow definition** is a class extending `FlowDefinition`. Only `key()` is required; everything else has a sensible default.
+A **flow definition** is a class that extends `FlowDefinition`. Only `key()` is required. Everything else has a default.
 
 ```php
 class PurchaseFlow extends FlowDefinition
@@ -292,7 +351,7 @@ class PurchaseFlow extends FlowDefinition
 }
 ```
 
-Register each definition once, through the plugin (`FlowBuilderPlugin::make()->definitions([...])`), or directly on the registry. (`FlowBuilderField::make()->definition(PurchaseFlow::class)` also registers a class it is given, so for the field alone the plugin is optional; register it anyway when you run flows outside a form.)
+Register each definition once, through the plugin (`FlowBuilderPlugin::make()->definitions([...])`), or directly on the registry. `FlowBuilderField::make()->definition(PurchaseFlow::class)` also registers a class it is given, so for the field alone the plugin is optional. Register it anyway when you run flows outside a form.
 
 ```php
 app(\Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry::class)->register(PurchaseFlow::class);
@@ -302,7 +361,7 @@ What a definition can say:
 
 | Method | Default | What it is for |
 |---|---|---|
-| `key()` (static, required) | | A stable name; it is stored with nothing, but fields and pages refer to it. |
+| `key()` (static, required) | | A stable name. It is not stored with the flow, but fields and pages refer to it. |
 | `label()` | the key as a headline (`purchase` → "Purchase") | A name for people. |
 | `stepTypeClasses()` (protected) | `[ApprovalStep::class]` | The step types "+" offers. |
 | `conditionTypeClasses()` (protected) | `[ValueCondition::class]` | The conditions "Only when" offers. Return `[]` for none. |
@@ -310,7 +369,7 @@ What a definition can say:
 | `approvers()` | `[]` | `key => label` the Approval step can choose from. |
 | `teams()` | `[]` | `key => label` the Parallel review can choose from. |
 | `contextFields()` | `[]` | `key => label` of the values your app knows about an item. Used by *A value matches* and by "Test it as…". |
-| `settingsSchema()` | `[]` | Filament fields for the whole flow. Non-empty makes the Start card open them. |
+| `settingsSchema()` | `[]` | Filament fields for the whole flow. If not empty, the Start card opens them. |
 | `startSummary(array $settings)` | `[]` | Chips on the Start card. |
 | `validateSettings(array $settings)` | `[]` | Problems with the flow settings, shown on the Start card. |
 | `testSchema()` | one text field per context field | The form of "Test it as…". |
@@ -333,7 +392,7 @@ Read-only helpers: `stepTypes()`, `stepType($key)`, `conditionTypes()`, `conditi
 
 ### Your own
 
-Extend `AbstractStepType` and override what you need (see [the quick start](#2-add-a-step-type-of-your-own)). The full contract, `StepType`:
+Extend `AbstractStepType` and override what you need (see [the quick start](#2-add-a-step-type-of-your-own)). The full contract is `StepType`:
 
 | Method | Default in `AbstractStepType` | What it is for |
 |---|---|---|
@@ -414,7 +473,7 @@ List it in your definition's `conditionTypeClasses()`.
 
 ## Running a flow (the API)
 
-The builder edits flows; `FlowRunner` runs them. It is stateless: you keep where an item is (a `Position`) and pass it back on the next decision. It works the same from a controller, a job or a command, with or without the panel.
+The builder edits flows. `FlowRunner` runs them. It is stateless: you keep where an item is (a `Position`) and pass it back on the next decision. It works the same from a controller, a job or a command, with or without the panel.
 
 ```php
 use Banyan\FilamentFlowBuilder\Data\Flow;
@@ -461,13 +520,13 @@ Event::listen(function (StepReached $event): void {
 });
 ```
 
-Walking the example flow above with an amount of HKD 25,000 fires, in order: `StepReached` and `OutcomeChosen` for each of the four steps, then `FlowFinished`. With HKD 5,000, the director's step is `StepSkipped` instead.
+Walk the example flow above with an amount of HKD 25,000. It fires `StepReached` and `OutcomeChosen` for each of the four steps, in order, then `FlowFinished`. With HKD 5,000, the director's step is `StepSkipped` instead.
 
 ---
 
 ## Two ways to put the builder on a page
 
-**1. As a form field** (the quick start). The state is the flow as an array. The field validates on save and lists every problem on its card. Use it when the flow belongs to a record: a template, a category, a department.
+**1. As a form field** (the quick start). The state is the flow as an array. The field validates on save and lists every problem on its card. Use it when the flow belongs to a record, such as a template, a category or a department.
 
 ```php
 FlowBuilderField::make('flow')->definition(PurchaseFlow::class)
@@ -545,9 +604,26 @@ The [usage guide](docs/guide.md) explains it piece by piece.
 
 ---
 
-## The stored data
+## Data model and where flow data lives
 
-What the field saves, and what `Flow::fromArray()` reads. It is plain JSON, so you can version it, diff it, export it or seed it.
+### What the package owns
+
+Nothing in the database. The plugin has no migrations, no models and no config file. It adds no pages, resources or routes.
+
+Your app owns all the data:
+
+| What | Where it lives |
+|---|---|
+| The flow a person designed | A JSON column of your own table (`approval_flows.flow` in the example) |
+| Where an item is in a flow | A JSON column on the item (`purchase_requests.position`) |
+| Votes, status, history, reminders | Your own tables |
+| Who holds an approver key | Your users, roles or any directory you choose |
+
+Because the data is yours, you can back it up, migrate it, index it and query it like the rest of your app.
+
+### How a flow is stored
+
+This is what the field saves and what `Flow::fromArray()` reads. It is plain JSON, so you can version it, diff it, export it or seed it.
 
 ```json
 {
@@ -573,25 +649,166 @@ What the field saves, and what `Flow::fromArray()` reads. It is plain JSON, so y
 }
 ```
 
-Reading is tolerant: broken steps are dropped and duplicate ids are renamed, so an old or hand-edited value never breaks the editor. `Flow` is immutable, with `find()`, `indexOf()`, `insert()`, `replace()`, `remove()`, `move()`, `withSettings()` and `toArray()`. `FlowValidator::problems($flow, $definition)` returns the same problems the editor shows, by step id.
+| Key | Meaning |
+|---|---|
+| `steps[].id` | Unique in the flow. Letters, numbers, `_` and `-`, up to 64 characters. A step with a bad or missing id gets a new one when it is read |
+| `steps[].type` | The step type `key()`, for example `approval`. Required |
+| `steps[].name` | The name the designer typed |
+| `steps[].settings` | The settings of the step type. `approvers`, `rule` and `count` for `approval` |
+| `steps[].when` | `null`, or `{ "type": …, "settings": … }` for a condition |
+| `steps[].reminder_days` | `null`, or 1 to 365 |
+| `settings` | The flow's own settings, from `settingsSchema()` |
+
+Reading is tolerant. Broken steps are dropped and duplicate ids are renamed, so an old or hand-edited value never breaks the editor. `Flow` is immutable. It has `find()`, `indexOf()`, `insert()`, `replace()`, `remove()`, `move()`, `withSettings()` and `toArray()`. `FlowValidator::problems($flow, $definition)` returns the same problems the editor shows, by step id.
+
+### How a position is stored
+
+`Position` is two values: a state and a step id. You store `$position->toArray()` on your item and restore it with `Position::fromArray()`.
+
+```json
+{ "state": "step", "step_id": "step_k3j9x0q2ab" }
+```
+
+| `state` | Meaning | `step_id` |
+|---|---|---|
+| `step` | Waiting at that step | The step id |
+| `returned` | An outcome sent it back to the start | `null` |
+| `finished` | Every step is done | `null` |
+
+`fromArray()` never throws. A value it cannot read, or a `step` with no id, becomes `returned`.
+
+Snapshot the flow on the item when it starts (the example does this in `purchase_requests.flow`). Then a later edit of the template does not move items that are already in it.
+
+### Querying from your code
+
+The queries below use the example's tables (see `examples/PurchaseRequests/database/migrations`). Change the names to match yours.
+
+```php
+use Banyan\FilamentFlowBuilder\Examples\PurchaseRequests\Models\PurchaseRequest;
+use Banyan\FilamentFlowBuilder\Examples\PurchaseRequests\Workflow\PurchaseRequestWorkflow;
+
+$workflow = app(PurchaseRequestWorkflow::class);
+
+// Who can act on this request now (user ids). The requester is left out.
+$userIds = $workflow->whoCanAct($request);
+
+// May this user act on it?
+$allowed = $workflow->canAct($request, auth()->id());
+
+// The step it waits at, read from the request's own snapshot of the flow.
+$step = $workflow->stepOf($request);   // ?Step
+
+// Requests waiting at one step. Use the step id inside the position JSON.
+$waiting = PurchaseRequest::query()
+    ->where('status', PurchaseRequest::IN_REVIEW)
+    ->where('position->step_id', $stepId)
+    ->get();
+
+// Requests nobody can act on, and requests that have waited more than three days.
+$stuck = PurchaseRequest::query()->where('status', PurchaseRequest::STUCK)->get();
+$slow = PurchaseRequest::query()
+    ->where('status', PurchaseRequest::IN_REVIEW)
+    ->where('step_reached_at', '<', now()->subDays(3))
+    ->get();
+
+// History, oldest first, and the votes on one step.
+$lines = $request->history;
+$votes = $request->votes()->where('step_id', $stepId)->get();
+```
+
+To find the requests a person can act on, read the keys they hold (`ApproverDirectory::keysOf($userId)`) and check each waiting request with `canAct()`. The step's keys live in the step's `settings` (`approvers`, or `teams` for a parallel review), so they are not a column you can filter on in SQL.
+
+Write the position only through the runner's result. Do not build a `Position` by hand, so that the events and your status stay in step.
+
+## Using it in more than one panel
+
+You can add the plugin to as many Filament panels as you like. The plugin adds no pages, resources or routes. A panel only contributes its list of flow definitions.
+
+```php
+// AdminPanelProvider
+->plugin(FlowBuilderPlugin::make()->definitions([PurchaseFlow::class]))
+
+// StaffPanelProvider
+->plugin(FlowBuilderPlugin::make()->definitions([LeaveFlow::class]))
+```
+
+What is per panel:
+
+- **The plugin instance and its definitions list.** Each panel has its own `FlowBuilderPlugin`. `FlowBuilderPlugin::getDefinitions()` returns the classes listed for that panel.
+- **Your pages and routes.** The builder is a form field or a trait that you put on your own pages, so each panel keeps its own pages and URLs, for example `/admin/purchase-flow` and `/staff/leave-flow`.
+
+What is shared by the whole app:
+
+- The `FlowDefinitionRegistry` singleton. It holds the definition class names by key.
+- The Livewire `flow-builder` component, the views, the translations, the stylesheet and the `flow-builder::` view namespace.
+
+This means:
+
+- A definition registered in one panel can be used in another panel. For example, `<livewire:flow-builder definition="leave" />` works on a page in the `admin` panel.
+- Flow data never crosses panels by itself. It lives in your form state and your database. A flow edited in one panel does not show in the other unless both pages read the same record.
+- Registering the same definition class twice, as two panels may, does no harm.
+- **Do not reuse a definition key for different classes in two panels.** The last class registered under a key wins. This is also how you replace a definition with your own subclass of it.
+
+If a panel needs different permissions, check the panel in your own page or policy, for example with `Filament::getCurrentPanel()?->getId()`. The plugin does not add any Gate abilities.
+
+The tests in `tests/Feature/MultiPanelTest.php` cover two panels on one app.
+
+## Customising views and translations
+
+The plugin has no pages to subclass. You change it in three ways:
+
+- Put `FlowBuilderField` or the `InteractsWithFlowBuilder` trait on your own pages and resources (see [Two ways to put the builder on a page](#two-ways-to-put-the-builder-on-a-page)).
+- Override `flowDefinition()` on your page to build a definition with context.
+- Publish the views or the translations.
+
+Publish tags:
+
+| Tag | Files go to |
+|---|---|
+| `flow-builder-views` | `resources/views/vendor/flow-builder` |
+| `flow-builder-translations` | `lang/vendor/flow-builder` |
+
+```bash
+php artisan vendor:publish --tag=flow-builder-views
+php artisan vendor:publish --tag=flow-builder-translations
+```
+
+Both tags are only available in the console. There is no config file to publish.
+
+A view in `resources/views/vendor/flow-builder` wins over the package's own. The views are:
+
+| View | What it draws |
+|---|---|
+| `canvas.blade.php` | The canvas (`@include('flow-builder::canvas')`) |
+| `forms/flow-builder-field.blade.php` | The form field |
+| `livewire/flow-builder.blade.php` | The stand-alone component |
+| `livewire/partials/start.blade.php`, `plus.blade.php`, `card.blade.php` | The Start card, the "+" and a step card |
+
+Publish only what you change and delete the rest, so that updates to the other views still reach you.
+
+Translations are read as `flow-builder::flow.*`. The files land in `lang/vendor/flow-builder/{locale}/flow.php`. The three languages have the same keys.
 
 ## Look and feel, dark mode, languages
 
-- **Colours** come from the panel's palette (`--primary-*`, `--gray-*`, `--success-*`, …), so the builder follows your theme and dark mode with no work. To fine-tune it, override the `--ffb-*` custom properties on `.ffb`. They are defined at the top of `resources/css/flow-builder.css`, and green text uses `--ffb-success-text` to keep 4.5:1 contrast.
-- **Languages:** English, Traditional Chinese (`zh-Hant`) and Simplified Chinese (`zh-Hans`). Publish to change the wording:
+- **Colours** come from the panel's palette (`--primary-*`, `--gray-*`, `--success-*`, …), so the builder follows your theme and dark mode with no work. To fine-tune it, override the `--ffb-*` custom properties on `.ffb`. They are defined at the top of `resources/css/flow-builder.css`. Green text uses `--ffb-success-text` to keep 4.5:1 contrast.
+- **Languages:** English, Traditional Chinese (`zh-Hant`) and Simplified Chinese (`zh-Hans`). Publish the translations to change the wording:
 
-  ```bash
-  php artisan vendor:publish --tag=flow-builder-translations
-  ```
+```bash
+php artisan vendor:publish --tag=flow-builder-translations
+```
 
-- **Accessibility:** every card, "+" and menu item is a real button; moving a step also works from each card's menu (Move up/down), not only by dragging.
+- **Accessibility:** every card, "+" and menu item is a real button. Moving a step also works from each card's menu (Move up/down), not only by dragging.
+
+## Security
+
+To report a security problem, read [SECURITY.md](SECURITY.md). Please report it privately and do not open a public issue.
 
 ## Reference
 
 | Class | Role |
 |---|---|
-| `FlowBuilderPlugin` | Filament plugin; `definitions([...])` registers definitions on a panel. |
-| `Definitions\FlowDefinition`, `Definitions\FlowDefinitionRegistry` | What a flow may contain; the registry looks them up by key. |
+| `FlowBuilderPlugin` | Filament plugin. `definitions([...])` registers definitions on a panel. |
+| `Definitions\FlowDefinition`, `Definitions\FlowDefinitionRegistry` | What a flow may contain. The registry looks them up by key. |
 | `Forms\FlowBuilderField` | The form field. `definition(string $classOrKey)`. |
 | `Concerns\InteractsWithFlowBuilder` | The canvas on any Livewire component. |
 | `Livewire\FlowBuilder` | Stand-alone Livewire component. |
