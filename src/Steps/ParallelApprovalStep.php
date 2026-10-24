@@ -89,15 +89,6 @@ class ParallelApprovalStep extends AbstractStepType
     /** @return list<string> */
     private function teamNames(Step $step, FlowDefinition $definition): array
     {
-        $options = $definition->teams();
-        $names = [];
-
-        foreach (is_array($step->settings['teams'] ?? null) ? $step->settings['teams'] : [] as $id) {
-            if ((is_string($id) || is_int($id)) && isset($options[(string) $id])) {
-                $names[] = $options[(string) $id];
-            }
-        }
-
-        return $names;
+        return $this->chosenLabels($definition->teams(), $step->settings['teams'] ?? null);
     }
 }

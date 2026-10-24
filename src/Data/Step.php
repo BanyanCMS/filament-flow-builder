@@ -34,7 +34,7 @@ final readonly class Step
             id: $this->id,
             type: $this->type,
             name: array_key_exists('name', $changes) && is_string($changes['name']) ? $changes['name'] : $this->name,
-            settings: array_key_exists('settings', $changes) ? Condition::stringKeyed($changes['settings']) : $this->settings,
+            settings: array_key_exists('settings', $changes) ? Arr::stringKeyed($changes['settings']) : $this->settings,
             when: array_key_exists('when', $changes) ? Condition::fromArray($changes['when']) : $this->when,
             reminderDays: array_key_exists('reminder_days', $changes) ? self::days($changes['reminder_days']) : $this->reminderDays,
         );
@@ -65,7 +65,7 @@ final readonly class Step
             id: $id,
             type: $data['type'],
             name: is_string($data['name'] ?? null) ? $data['name'] : '',
-            settings: Condition::stringKeyed($data['settings'] ?? []),
+            settings: Arr::stringKeyed($data['settings'] ?? []),
             when: Condition::fromArray($data['when'] ?? null),
             reminderDays: self::days($data['reminder_days'] ?? null),
         );

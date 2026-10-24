@@ -38,7 +38,7 @@ final readonly class Flow
             $steps[] = $step;
         }
 
-        return new self($steps, Condition::stringKeyed(is_array($data) ? ($data['settings'] ?? []) : []));
+        return new self($steps, Arr::stringKeyed(is_array($data) ? ($data['settings'] ?? []) : []));
     }
 
     /** @return array{steps: list<array<string, mixed>>, settings: array<string, mixed>} */

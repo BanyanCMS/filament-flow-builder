@@ -79,4 +79,23 @@ abstract class AbstractStepType implements StepType
     {
         return false;
     }
+
+    /**
+     * The labels of the chosen ids that exist in $options, in the order chosen.
+     *
+     * @param  array<array-key, string>  $options  id => label
+     * @return list<string>
+     */
+    protected function chosenLabels(array $options, mixed $ids): array
+    {
+        $labels = [];
+
+        foreach (is_array($ids) ? $ids : [] as $id) {
+            if ((is_string($id) || is_int($id)) && isset($options[(string) $id])) {
+                $labels[] = $options[(string) $id];
+            }
+        }
+
+        return $labels;
+    }
 }

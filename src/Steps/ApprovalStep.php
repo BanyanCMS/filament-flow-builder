@@ -9,6 +9,7 @@ use Banyan\FilamentFlowBuilder\Data\Step;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 
 /**
  * The built-in approval: chosen approvers, and how many of them must agree.
@@ -17,6 +18,15 @@ use Filament\Forms\Components\TextInput;
  */
 class ApprovalStep extends AbstractStepType
 {
+    /** One approver is enough. */
+    public const string RULE_ANY = 'any';
+
+    /** Every approver must agree. */
+    public const string RULE_ALL = 'all';
+
+    /** At least `count` approvers must agree. */
+    public const string RULE_COUNT = 'count';
+
     public static function key(): string
     {
         return 'approval';
@@ -34,7 +44,7 @@ class ApprovalStep extends AbstractStepType
 
     public function defaults(FlowDefinition $definition): array
     {
-        return ['approvers' => [], 'rule' => 'any', 'count' => 1];
+        return ['approvers' => [], 'rule' => self::RULE_ANY, 'count' => 1];
     }
 
     public function schema(FlowDefinition $definition): array
@@ -49,9 +59,9 @@ class ApprovalStep extends AbstractStepType
             Select::make('rule')
                 ->label(__('flow-builder::flow.approval.rule'))
                 ->options([
-                    'any' => __('flow-builder::flow.approval.rule_any'),
-                    'all' => __('flow-builder::flow.approval.rule_all'),
-                    'count' => __('flow-builder::flow.approval.rule_count'),
+                    self::RULE_ANY => __('flow-builder::flow.approval.rule_any'),
+                    self::RULE_ALL => __('flow-builder::flow.approval.rule_all'),
+                    self::RULE_COUNT => __('flow-builder::flow.approval.rule_count'),
                 ])
                 ->native(false)
                 ->live(),
@@ -59,7 +69,7 @@ class ApprovalStep extends AbstractStepType
                 ->label(__('flow-builder::flow.approval.count'))
                 ->numeric()
                 ->minValue(1)
-                ->visible(fn (callable $get): bool => $get('rule') === 'count')
+                ->visible(fn (Get $get): bool => $get('rule') === self::RULE_COUNT)
                 ->live(onBlur: true),
         ];
     }
@@ -72,13 +82,13 @@ class ApprovalStep extends AbstractStepType
             return [];
         }
 
-        $rule = $step->settings['rule'] ?? 'any';
+        $rule = $step->settings['rule'] ?? self::RULE_ANY;
         $count = max(1, self::number($step->settings['count'] ?? 1));
         $who = implode(', ', $names);
 
         return [match ($rule) {
-            'all' => (string) __('flow-builder::flow.approval.summary_all', ['who' => $who]),
-            'count' => (string) __('flow-builder::flow.approval.summary_count', ['count' => $count, 'who' => $who]),
+            self::RULE_ALL => (string) __('flow-builder::flow.approval.summary_all', ['who' => $who]),
+            self::RULE_COUNT => (string) __('flow-builder::flow.approval.summary_count', ['count' => $count, 'who' => $who]),
             default => (string) __('flow-builder::flow.approval.summary_any', ['who' => $who]),
         }];
     }
@@ -100,7 +110,7 @@ class ApprovalStep extends AbstractStepType
             $problems[] = (string) __('flow-builder::flow.approval.no_approvers');
         }
 
-        if (($step->settings['rule'] ?? 'any') === 'count' && self::number($step->settings['count'] ?? 0) > count($names)) {
+        if (($step->settings['rule'] ?? self::RULE_ANY) === self::RULE_COUNT && self::number($step->settings['count'] ?? 0) > count($names)) {
             $problems[] = (string) __('flow-builder::flow.approval.count_too_high', ['count' => count($names)]);
         }
 
@@ -120,15 +130,6 @@ class ApprovalStep extends AbstractStepType
     /** @return list<string> */
     private function approverNames(Step $step, FlowDefinition $definition): array
     {
-        $options = $definition->approvers();
-        $names = [];
-
-        foreach (is_array($step->settings['approvers'] ?? null) ? $step->settings['approvers'] : [] as $id) {
-            if ((is_string($id) || is_int($id)) && isset($options[(string) $id])) {
-                $names[] = $options[(string) $id];
-            }
-        }
-
-        return $names;
+        return $this->chosenLabels($definition->approvers(), $step->settings['approvers'] ?? null);
     }
 }

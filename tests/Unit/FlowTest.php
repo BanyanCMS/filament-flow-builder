@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Banyan\FilamentFlowBuilder\Data\Arr;
+use Banyan\FilamentFlowBuilder\Data\Condition;
 use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Data\Step;
 
@@ -37,4 +39,10 @@ it('inserts, moves and removes steps by id', function (): void {
         ->and($flow->find('c')?->name)->toBe('C')
         ->and($flow->find('x'))->toBeNull()
         ->and($flow->replace($c->with(['name' => 'Renamed', 'when' => ['type' => 'value', 'settings' => ['field' => 'amount']]]))->find('c')?->when?->settings)->toBe(['field' => 'amount']);
+});
+
+it('turns any settings value into an array with string keys', function (): void {
+    expect(Arr::stringKeyed([1 => 'a', 'b' => 'c']))->toBe(['1' => 'a', 'b' => 'c'])
+        ->and(Arr::stringKeyed('not an array'))->toBe([])
+        ->and(Condition::stringKeyed([2 => 'x']))->toBe(['2' => 'x']);
 });

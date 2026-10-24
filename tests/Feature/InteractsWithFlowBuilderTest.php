@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
+use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
+use Banyan\FilamentFlowBuilder\Tests\Support\CountingFlow;
 use Banyan\FilamentFlowBuilder\Tests\Support\HostedFlow;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseFlow;
 use Livewire\Livewire;
@@ -108,4 +110,18 @@ it('starts a newly chosen condition from its defaults, so the rule is never empt
 
     expect($test->get('stepData.when_settings'))->toBe(['field' => 'amount', 'operator' => 'is', 'value' => ''])
         ->and($test->get('flow')['steps'][0]['when'])->toBe(['type' => ValueCondition::key(), 'settings' => ['field' => 'amount', 'operator' => 'is', 'value' => '']]);
+});
+
+it('builds the definition once per request, however often the page asks for it', function (): void {
+    app(FlowDefinitionRegistry::class)->register(CountingFlow::class);
+    CountingFlow::$built = 0;
+
+    $test = Livewire::test(FlowBuilder::class, ['definition' => 'counting', 'flow' => ['steps' => [flowBuilderHostedStep('a'), flowBuilderHostedStep('b')]]]);
+
+    expect(CountingFlow::$built)->toBe(1);
+
+    CountingFlow::$built = 0;
+    $test->call('select', 'a')->call('moveStepDown', 'a');
+
+    expect(CountingFlow::$built)->toBe(2);
 });

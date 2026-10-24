@@ -14,7 +14,17 @@ use Filament\Forms\Components\TextInput;
  */
 class ValueCondition implements ConditionType
 {
-    public const array OPERATORS = ['is', 'is_not', 'greater_than', 'less_than', 'contains'];
+    public const string IS = 'is';
+
+    public const string IS_NOT = 'is_not';
+
+    public const string GREATER_THAN = 'greater_than';
+
+    public const string LESS_THAN = 'less_than';
+
+    public const string CONTAINS = 'contains';
+
+    public const array OPERATORS = [self::IS, self::IS_NOT, self::GREATER_THAN, self::LESS_THAN, self::CONTAINS];
 
     public static function key(): string
     {
@@ -48,7 +58,7 @@ class ValueCondition implements ConditionType
     public function describe(array $settings, FlowDefinition $definition): string
     {
         $field = is_string($settings['field'] ?? null) ? ($definition->contextFields()[$settings['field']] ?? $settings['field']) : '…';
-        $operator = in_array($settings['operator'] ?? null, self::OPERATORS, true) ? $settings['operator'] : 'is';
+        $operator = in_array($settings['operator'] ?? null, self::OPERATORS, true) ? $settings['operator'] : self::IS;
         $value = is_scalar($settings['value'] ?? null) ? (string) $settings['value'] : '…';
 
         return (string) __('flow-builder::flow.condition.sentence', [
@@ -69,12 +79,12 @@ class ValueCondition implements ConditionType
         $actual = $context[$field];
         $expected = $settings['value'] ?? null;
 
-        return match ($settings['operator'] ?? 'is') {
-            'is' => self::text($actual) === self::text($expected),
-            'is_not' => self::text($actual) !== self::text($expected),
-            'greater_than' => is_numeric($actual) && is_numeric($expected) && (float) $actual > (float) $expected,
-            'less_than' => is_numeric($actual) && is_numeric($expected) && (float) $actual < (float) $expected,
-            'contains' => is_array($actual)
+        return match ($settings['operator'] ?? self::IS) {
+            self::IS => self::text($actual) === self::text($expected),
+            self::IS_NOT => self::text($actual) !== self::text($expected),
+            self::GREATER_THAN => is_numeric($actual) && is_numeric($expected) && (float) $actual > (float) $expected,
+            self::LESS_THAN => is_numeric($actual) && is_numeric($expected) && (float) $actual < (float) $expected,
+            self::CONTAINS => is_array($actual)
                 ? in_array(self::text($expected), array_map(self::text(...), $actual), true)
                 : self::text($expected) !== '' && str_contains(mb_strtolower(self::text($actual)), mb_strtolower(self::text($expected))),
             default => false,
@@ -85,7 +95,7 @@ class ValueCondition implements ConditionType
     {
         $field = array_key_first($definition->contextFields());
 
-        return ['field' => $field, 'operator' => 'is', 'value' => ''];
+        return ['field' => $field, 'operator' => self::IS, 'value' => ''];
     }
 
     public function validate(array $settings, FlowDefinition $definition): array
@@ -96,7 +106,7 @@ class ValueCondition implements ConditionType
             $problems[] = (string) __('flow-builder::flow.condition.no_field');
         }
 
-        if (in_array($settings['operator'] ?? 'is', ['greater_than', 'less_than'], true) && ! is_numeric($settings['value'] ?? null)) {
+        if (in_array($settings['operator'] ?? self::IS, [self::GREATER_THAN, self::LESS_THAN], true) && ! is_numeric($settings['value'] ?? null)) {
             $problems[] = (string) __('flow-builder::flow.condition.not_a_number');
         }
 

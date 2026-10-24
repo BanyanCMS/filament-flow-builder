@@ -28,18 +28,16 @@ final readonly class Condition
             return null;
         }
 
-        return new self($data['type'], self::stringKeyed($data['settings'] ?? []));
+        return new self($data['type'], Arr::stringKeyed($data['settings'] ?? []));
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @deprecated use Arr::stringKeyed(), which is internal to this package
+     *
+     * @return array<string, mixed>
+     */
     public static function stringKeyed(mixed $value): array
     {
-        $out = [];
-
-        foreach (is_array($value) ? $value : [] as $key => $item) {
-            $out[(string) $key] = $item;
-        }
-
-        return $out;
+        return Arr::stringKeyed($value);
     }
 }

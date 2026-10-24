@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Banyan\FilamentFlowBuilder\Concerns;
 
 use Banyan\FilamentFlowBuilder\Actions\TestFlowAction;
+use Banyan\FilamentFlowBuilder\Canvas\CanvasBuilder;
 use Banyan\FilamentFlowBuilder\Data\Flow;
-use Banyan\FilamentFlowBuilder\Data\Outcome;
 use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\Data\StepPreset;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
 use Banyan\FilamentFlowBuilder\Validation\FlowValidator;
@@ -36,7 +37,13 @@ trait InteractsWithFlowBuilder
     public const string FLOW_ALWAYS = '__always';
 
     /** The Start card's selection id. */
-    public const string FLOW_START = 'start';
+    public const string FLOW_START = CanvasBuilder::START;
+
+    private const string PANEL_WHEN_TYPE = 'when_type';
+
+    private const string PANEL_WHEN_SETTINGS = 'when_settings';
+
+    private const string PANEL_REMINDER_DAYS = 'reminder_days';
 
     public ?string $selected = null;
 
@@ -48,6 +55,9 @@ trait InteractsWithFlowBuilder
 
     /** @var array<string, list<string>> step id (or "start") => problems the host found, e.g. on save */
     public array $flowProblems = [];
+
+    /** Not Livewire state: only public properties are sent to the browser. */
+    protected ?FlowDefinition $resolvedFlowDefinition = null;
 
     abstract public function flowDefinitionKey(): string;
 
@@ -73,11 +83,15 @@ trait InteractsWithFlowBuilder
     /**
      * What the canvas view needs.
      *
+     * @internal
+     *
      * @return array{cards: list<array<string, mixed>>, start: array{selectable: bool, chips: list<string>, problems: list<string>}, flowDefinition: FlowDefinition}
      */
     public function flowCanvas(): array
     {
-        return ['cards' => $this->flowCards(), 'start' => $this->flowStartCard(), 'flowDefinition' => $this->flowDefinition()];
+        $canvas = $this->canvasBuilder();
+
+        return ['cards' => $canvas->cards(), 'start' => $canvas->start(), 'flowDefinition' => $this->flowDefinition()];
     }
 
     public function select(?string $id): void
@@ -101,15 +115,15 @@ trait InteractsWithFlowBuilder
         $step = $id === null ? null : $this->currentFlow()->find($id);
         $this->selected = $step?->id;
         $this->stepData = [];
-        unset($this->cachedSchemas['stepForm']);
+        $this->forgetSchemas('stepForm');
 
         if ($step !== null) {
             $this->fillFlowPanel([
                 'name' => $step->name,
                 'settings' => $step->settings,
-                'when_type' => $step->when->type ?? self::FLOW_ALWAYS,
-                'when_settings' => $step->when->settings ?? [],
-                'reminder_days' => $step->reminderDays,
+                self::PANEL_WHEN_TYPE => $step->when->type ?? self::FLOW_ALWAYS,
+                self::PANEL_WHEN_SETTINGS => $step->when->settings ?? [],
+                self::PANEL_REMINDER_DAYS => $step->reminderDays,
             ]);
         }
     }
@@ -120,11 +134,7 @@ trait InteractsWithFlowBuilder
         $definition = $this->flowDefinition();
         $stepType = $definition->stepType($type);
         $flow = $this->currentFlow();
-        $chosen = null;
-
-        foreach ($stepType?->presets($definition) ?? [] as $candidate) {
-            $chosen = $candidate->key === $preset ? $candidate : $chosen;
-        }
+        $chosen = $this->findPreset($stepType?->presets($definition) ?? [], $preset);
 
         if ($this->flowIsReadOnly() || $chosen === null) {
             return;
@@ -139,6 +149,22 @@ trait InteractsWithFlowBuilder
         $step = new Step($definition->newStepId(), $type, $chosen->name, $chosen->settings, $chosen->when, $chosen->reminderDays);
         $this->storeFlow($flow->insert($position, $step));
         $this->select($step->id);
+    }
+
+    /**
+     * The preset with this key (the last one if a type repeats a key), or null.
+     *
+     * @param  list<StepPreset>  $presets
+     */
+    private function findPreset(array $presets, string $key): ?StepPreset
+    {
+        $found = null;
+
+        foreach ($presets as $candidate) {
+            $found = $candidate->key === $key ? $candidate : $found;
+        }
+
+        return $found;
     }
 
     public function removeStep(string $id): void
@@ -176,6 +202,7 @@ trait InteractsWithFlowBuilder
         $index = $this->currentFlow()->indexOf($id);
 
         if ($index !== null) {
+            // Moving to position p puts the step before the one now at p, so one place down is index + 2.
             $this->moveStep($id, $index + 2);
         }
     }
@@ -183,27 +210,39 @@ trait InteractsWithFlowBuilder
     /** The panel edits the selected step; every change goes straight back into the flow. */
     public function updatedStepData(mixed $value = null, ?string $key = null): void
     {
+        if ($this->flowIsReadOnly()) {
+            return;
+        }
+
         // A different condition brings different fields: give each of them its key, starting from the condition's defaults.
-        if ($key === 'when_type' && ! $this->flowIsReadOnly()) {
+        if ($key === self::PANEL_WHEN_TYPE) {
             $condition = is_string($value) ? $this->flowDefinition()->conditionType($value) : null;
-            $this->fillFlowPanel([...$this->stepData, 'when_settings' => $condition?->defaults($this->flowDefinition()) ?? []]);
+            $this->fillFlowPanel([...$this->stepData, self::PANEL_WHEN_SETTINGS => $condition?->defaults($this->flowDefinition()) ?? []]);
         }
 
         $flow = $this->currentFlow();
         $step = $this->selected === null ? null : $flow->find($this->selected);
 
-        if ($this->flowIsReadOnly() || $step === null) {
-            return;
+        if ($step !== null) {
+            $this->storeFlow($flow->replace($step->with($this->panelChanges())));
         }
+    }
 
-        $whenType = is_string($this->stepData['when_type'] ?? null) ? $this->stepData['when_type'] : self::FLOW_ALWAYS;
+    /**
+     * The panel's state as the changes `Step::with()` takes.
+     *
+     * @return array<string, mixed>
+     */
+    private function panelChanges(): array
+    {
+        $whenType = is_string($this->stepData[self::PANEL_WHEN_TYPE] ?? null) ? $this->stepData[self::PANEL_WHEN_TYPE] : self::FLOW_ALWAYS;
 
-        $this->storeFlow($flow->replace($step->with([
+        return [
             'name' => is_string($this->stepData['name'] ?? null) ? $this->stepData['name'] : '',
             'settings' => $this->stepData['settings'] ?? [],
-            'when' => in_array($whenType, ['', self::FLOW_ALWAYS], true) ? null : ['type' => $whenType, 'settings' => $this->stepData['when_settings'] ?? []],
-            'reminder_days' => $this->stepData['reminder_days'] ?? null,
-        ])));
+            'when' => in_array($whenType, ['', self::FLOW_ALWAYS], true) ? null : ['type' => $whenType, 'settings' => $this->stepData[self::PANEL_WHEN_SETTINGS] ?? []],
+            'reminder_days' => $this->stepData[self::PANEL_REMINDER_DAYS] ?? null,
+        ];
     }
 
     /** The Start panel edits the flow's own settings. */
@@ -247,7 +286,7 @@ trait InteractsWithFlowBuilder
         ];
 
         if ($type->remindable()) {
-            $components[] = TextInput::make('reminder_days')
+            $components[] = TextInput::make(self::PANEL_REMINDER_DAYS)
                 ->label(__('flow-builder::flow.panel.reminder'))
                 ->helperText(__('flow-builder::flow.panel.reminder_help'))
                 ->numeric()
@@ -258,7 +297,7 @@ trait InteractsWithFlowBuilder
         }
 
         if ($conditions !== []) {
-            $components[] = Select::make('when_type')
+            $components[] = Select::make(self::PANEL_WHEN_TYPE)
                 ->label(__('flow-builder::flow.panel.when'))
                 ->options([self::FLOW_ALWAYS => __('flow-builder::flow.panel.always'), ...array_map(static fn ($c): string => $c->label(), $conditions)])
                 ->selectablePlaceholder(false)
@@ -267,8 +306,8 @@ trait InteractsWithFlowBuilder
 
             foreach ($conditions as $key => $condition) {
                 $components[] = Group::make($condition->schema($definition))
-                    ->statePath('when_settings')
-                    ->visible(fn (Get $get): bool => $get('when_type') === $key);
+                    ->statePath(self::PANEL_WHEN_SETTINGS)
+                    ->visible(fn (Get $get): bool => $get(self::PANEL_WHEN_TYPE) === $key);
             }
         }
 
@@ -281,77 +320,39 @@ trait InteractsWithFlowBuilder
     /**
      * What the canvas draws, in running order.
      *
+     * @internal the canvas view uses flowCanvas(); this stays for hosts that call it
+     *
      * @return list<array{id: string, number: int, kind: string, name: string, icon: string, color: string, chips: list<string>, outcomes: list<array{label: string, tone: string}>, condition: string|null, problems: list<string>}>
      */
     public function flowCards(): array
     {
-        $definition = $this->flowDefinition();
-        $flow = $this->currentFlow();
-        $problems = app(FlowValidator::class)->problems($flow, $definition);
-        $last = count($flow->steps) - 1;
-        $cards = [];
-
-        foreach ($flow->steps as $index => $step) {
-            $type = $definition->stepType($step->type);
-            $condition = $step->when === null ? null : $definition->conditionType($step->when->type);
-
-            $chips = $type?->summary($step, $definition) ?? [];
-
-            if ($step->reminderDays !== null && $type?->remindable() === true) {
-                $chips[] = (string) trans_choice('flow-builder::flow.reminder_chip', $step->reminderDays, ['days' => $step->reminderDays]);
-            }
-
-            $cards[] = [
-                'id' => $step->id,
-                'number' => $index + 1,
-                'kind' => $type?->cardKind($step, $definition) ?? $step->type,
-                'name' => $step->name,
-                'icon' => $type?->cardIcon($step, $definition) ?? 'heroicon-m-question-mark-circle',
-                'color' => $type?->cardColor($step, $definition) ?? 'gray',
-                'chips' => $chips,
-                'outcomes' => array_map(fn (Outcome $outcome): array => [
-                    'label' => $this->flowOutcomeLabel($outcome, $index === $last, $definition),
-                    'tone' => $outcome->tone,
-                ], $type?->outcomes($step, $definition) ?? []),
-                'condition' => $condition?->describe($step->when->settings ?? [], $definition),
-                'problems' => [...($problems[$step->id] ?? []), ...($this->flowProblems[$step->id] ?? [])],
-            ];
-        }
-
-        return $cards;
+        return $this->canvasBuilder()->cards();
     }
 
     /**
      * The Start card: the flow's own settings when the definition has any.
      *
+     * @internal the canvas view uses flowCanvas(); this stays for hosts that call it
+     *
      * @return array{selectable: bool, chips: list<string>, problems: list<string>}
      */
     public function flowStartCard(): array
     {
-        $definition = $this->flowDefinition();
-        $flow = $this->currentFlow();
-
-        return [
-            'selectable' => $definition->settingsSchema() !== [],
-            'chips' => $definition->startSummary($flow->settings),
-            'problems' => [...(app(FlowValidator::class)->problems($flow, $definition)['start'] ?? []), ...($this->flowProblems[self::FLOW_START] ?? [])],
-        ];
+        return $this->canvasBuilder()->start();
     }
 
+    private function canvasBuilder(): CanvasBuilder
+    {
+        $flow = $this->currentFlow();
+        $definition = $this->flowDefinition();
+
+        return new CanvasBuilder($flow, $definition, app(FlowValidator::class)->problems($flow, $definition), $this->flowProblems);
+    }
+
+    /** The registry builds a new object on every call, so the first one is kept for the request. */
     public function flowDefinition(): FlowDefinition
     {
-        return app(FlowDefinitionRegistry::class)->get($this->flowDefinitionKey());
-    }
-
-    private function flowOutcomeLabel(Outcome $outcome, bool $last, FlowDefinition $definition): string
-    {
-        $where = match (true) {
-            $outcome->goesTo === Outcome::START => $definition->returnLabel(),
-            $outcome->goesTo === Outcome::FINISH, $last => $definition->finishLabel(),
-            default => __('flow-builder::flow.goes_next'),
-        };
-
-        return $outcome->label.' → '.$where;
+        return $this->resolvedFlowDefinition ??= app(FlowDefinitionRegistry::class)->get($this->flowDefinitionKey());
     }
 
     /**
@@ -362,8 +363,16 @@ trait InteractsWithFlowBuilder
      */
     private function fillFlowPanel(array $state): void
     {
-        unset($this->cachedSchemas['stepForm']);
+        $this->forgetSchemas('stepForm');
         $this->getSchema('stepForm')?->fill($state);
+    }
+
+    /** The named schemas are rebuilt the next time they are asked for. */
+    private function forgetSchemas(string ...$names): void
+    {
+        foreach ($names as $name) {
+            unset($this->cachedSchemas[$name]);
+        }
     }
 
     private function selectFlowStart(): void
@@ -374,7 +383,7 @@ trait InteractsWithFlowBuilder
 
         $this->selected = self::FLOW_START;
         $this->stepData = [];
-        unset($this->cachedSchemas['stepForm'], $this->cachedSchemas['settingsForm']);
+        $this->forgetSchemas('stepForm', 'settingsForm');
         $this->getSchema('settingsForm')?->fill($this->currentFlow()->settings);
     }
 
