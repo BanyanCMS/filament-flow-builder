@@ -7,7 +7,7 @@ namespace Banyan\FilamentFlowBuilder\Actions;
 use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
-use Banyan\FilamentFlowBuilder\Testing\FlowTestResult;
+use Banyan\FilamentFlowBuilder\DryRun\DryRunResult;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
@@ -20,7 +20,7 @@ use Filament\Schemas\Components\Utilities\Get;
  * is on screen. Nothing is saved. Put it anywhere (the builder shows one
  * above its canvas) with ->definition() and ->flowUsing().
  */
-class TestFlowAction extends Action
+class DryRunAction extends Action
 {
     protected string $definitionKey = '';
 
@@ -28,7 +28,7 @@ class TestFlowAction extends Action
 
     public static function getDefaultName(): ?string
     {
-        return 'testFlow';
+        return 'flowDryRun';
     }
 
     protected function setUp(): void
@@ -43,7 +43,7 @@ class TestFlowAction extends Action
             ->modalSubmitAction(false)
             ->modalCancelActionLabel(__('flow-builder::flow.test.close'))
             ->schema(fn (): array => [
-                ...$this->resolveDefinition()->testSchema(),
+                ...$this->resolveDefinition()->dryRunSchema(),
                 TextEntry::make('route')
                     ->label(__('flow-builder::flow.test.route'))
                     ->state(fn (Get $get): array => $this->result($get)->lines)
@@ -77,19 +77,19 @@ class TestFlowAction extends Action
         return app(FlowDefinitionRegistry::class)->get($this->definitionKey);
     }
 
-    private function result(Get $get): FlowTestResult
+    private function result(Get $get): DryRunResult
     {
         $definition = $this->resolveDefinition();
         $flow = $this->flowUsing === null ? new Flow : $this->evaluate($this->flowUsing);
         $input = [];
 
-        foreach ($definition->testSchema() as $component) {
+        foreach ($definition->dryRunSchema() as $component) {
             if ($component instanceof Field) {
                 $name = (string) $component->getName();
                 $input[$name] = $get($name);
             }
         }
 
-        return $definition->test($flow instanceof Flow ? $flow : new Flow, $input);
+        return $definition->dryRun($flow instanceof Flow ? $flow : new Flow, $input);
     }
 }

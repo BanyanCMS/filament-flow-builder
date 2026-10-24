@@ -28,14 +28,14 @@ it('draws the start and finish the app defined, and offers its step types under 
 });
 
 it('adds a step at a +, selects it and edits it from the panel', function (): void {
-    $test = flowBuilderTest()->call('insertStep', 0, 'approval');
+    $test = flowBuilderTest()->call('insertFlowStep', 0, 'approval');
     $id = flowBuilderSteps($test)[0]['id'];
 
-    $test->assertSet('selected', $id)
+    $test->assertSet('flowSelected', $id)
         ->assertSee('Choose who approves.')
-        ->set('stepData.name', 'Line manager approval')
-        ->set('stepData.settings.approvers', ['manager', 'finance'])
-        ->set('stepData.settings.rule', 'all');
+        ->set('flowStepData.name', 'Line manager approval')
+        ->set('flowStepData.settings.approvers', ['manager', 'finance'])
+        ->set('flowStepData.settings.rule', 'all');
 
     expect(flowBuilderSteps($test)[0])->toMatchArray(['type' => 'approval', 'name' => 'Line manager approval'])
         ->and(flowBuilderSteps($test)[0]['settings']['approvers'])->toBe(['manager', 'finance']);
@@ -47,22 +47,22 @@ it('adds a step at a +, selects it and edits it from the panel', function (): vo
 });
 
 it('puts a condition on a step and shows the yes/no branch', function (): void {
-    $test = flowBuilderTest()->call('insertStep', 0, 'budget-check', 'it');
+    $test = flowBuilderTest()->call('insertFlowStep', 0, 'budget-check', 'it');
     $id = flowBuilderSteps($test)[0]['id'];
 
-    $test->set('stepData.when_type', 'value')
-        ->set('stepData.when_settings', ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000'])
+    $test->set('flowStepData.when_type', 'value')
+        ->set('flowStepData.when_settings', ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000'])
         ->assertSeeHtml('data-testid="flow-branch-'.$id.'"')
         ->assertSee('Only when Amount (HKD) is more than 10000')
         ->assertSee('Skipped');
 
     expect(flowBuilderSteps($test)[0]['when'])->toBe(['type' => 'value', 'settings' => ['field' => 'amount', 'operator' => 'greater_than', 'value' => '10000']]);
 
-    $test->set('stepData.when_type', '__always');
+    $test->set('flowStepData.when_type', '__always');
     expect(flowBuilderSteps($test)[0]['when'])->toBeNull();
 
     // Selecting the step again shows "Always" for a step without a condition.
-    $test->call('select', null)->call('select', $id)->assertSet('stepData.when_type', '__always');
+    $test->call('selectFlowNode', null)->call('selectFlowNode', $id)->assertSet('flowStepData.when_type', '__always');
 });
 
 it('reorders by drag or by the card menu, and removes a step', function (): void {
@@ -73,16 +73,16 @@ it('reorders by drag or by the card menu, and removes a step', function (): void
     ]]);
     $ids = static fn (): array => array_column(flowBuilderSteps($test), 'id');
 
-    $test->call('moveStep', 'c', 0);
+    $test->call('moveFlowStep', 'c', 0);
     expect($ids())->toBe(['c', 'a', 'b']);
 
-    $test->call('moveStepDown', 'c');
+    $test->call('moveFlowStepDown', 'c');
     expect($ids())->toBe(['a', 'c', 'b']);
 
-    $test->call('moveStepUp', 'b');
+    $test->call('moveFlowStepUp', 'b');
     expect($ids())->toBe(['a', 'b', 'c']);
 
-    $test->call('select', 'b')->call('removeStep', 'b')->assertSet('selected', FlowBuilder::FLOW_START);
+    $test->call('selectFlowNode', 'b')->call('removeFlowStep', 'b')->assertSet('flowSelected', FlowBuilder::FLOW_START);
     expect($ids())->toBe(['a', 'c']);
 });
 
@@ -90,16 +90,16 @@ it('changes nothing when read-only, an unknown type is asked for, or the flow is
     $flow = ['steps' => [['id' => 'a', 'type' => 'approval', 'name' => 'A', 'settings' => ['approvers' => ['manager']]]]];
 
     $readOnly = flowBuilderTest($flow, readOnly: true)
-        ->call('insertStep', 0, 'approval')
-        ->call('removeStep', 'a')
-        ->call('moveStep', 'a', 1)
-        ->call('select', 'a')
-        ->set('stepData.name', 'Hacked')
+        ->call('insertFlowStep', 0, 'approval')
+        ->call('removeFlowStep', 'a')
+        ->call('moveFlowStep', 'a', 1)
+        ->call('selectFlowNode', 'a')
+        ->set('flowStepData.name', 'Hacked')
         ->assertDontSeeHtml('data-testid="flow-remove"')
         ->assertDontSeeHtml('draggable="true"');
     expect(flowBuilderSteps($readOnly))->toHaveCount(1)->and(flowBuilderSteps($readOnly)[0]['name'])->toBe('A');
 
-    $unknown = flowBuilderTest()->call('insertStep', 0, '<script>');
+    $unknown = flowBuilderTest()->call('insertFlowStep', 0, '<script>');
     expect(flowBuilderSteps($unknown))->toBe([]);
 });
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Banyan\FilamentFlowBuilder\Concerns;
 
-use Banyan\FilamentFlowBuilder\Actions\TestFlowAction;
+use Banyan\FilamentFlowBuilder\Actions\DryRunAction;
 use Banyan\FilamentFlowBuilder\Canvas\CanvasBuilder;
 use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Data\Step;
@@ -27,7 +27,8 @@ use Filament\Schemas\Schema;
  *
  * The host declares `public array $flow` (the flow as plain data) and says
  * which definition it edits, whether it is read-only and whether to show the
- * built-in "Test it as…". It renders the canvas with
+ * built-in "Test it as…" dry run. The Livewire members the trait adds all start
+ * with "flow" (or end in "Flow…"), so they do not clash with the host's own. It renders the canvas with
  * `@include('flow-builder::canvas')` and the action
  * modals with `<x-filament-actions::modals />` (a Filament page already does).
  */
@@ -45,10 +46,10 @@ trait InteractsWithFlowBuilder
 
     private const string PANEL_REMINDER_DAYS = 'reminder_days';
 
-    public ?string $selected = null;
+    public ?string $flowSelected = null;
 
     /** @var array<string, mixed> the selected step, as the panel edits it */
-    public array $stepData = [];
+    public array $flowStepData = [];
 
     /** @var array<string, mixed> the flow's own settings, as the Start panel edits them */
     public array $flowSettings = [];
@@ -66,7 +67,7 @@ trait InteractsWithFlowBuilder
         return false;
     }
 
-    public function flowIsTestable(): bool
+    public function flowHasDryRun(): bool
     {
         return true;
     }
@@ -94,12 +95,12 @@ trait InteractsWithFlowBuilder
         return ['cards' => $canvas->cards(), 'start' => $canvas->start(), 'flowDefinition' => $this->flowDefinition()];
     }
 
-    public function select(?string $id): void
+    public function selectFlowNode(?string $id): void
     {
         // Errors under the panel's fields belong to what was selected before.
         $panelErrors = array_values(array_filter(
             $this->getErrorBag()->keys(),
-            static fn (string $key): bool => str_starts_with($key, 'stepData.') || str_starts_with($key, 'flowSettings.'),
+            static fn (string $key): bool => str_starts_with($key, 'flowStepData.') || str_starts_with($key, 'flowSettings.'),
         ));
 
         if ($panelErrors !== []) {
@@ -113,9 +114,9 @@ trait InteractsWithFlowBuilder
         }
 
         $step = $id === null ? null : $this->currentFlow()->find($id);
-        $this->selected = $step?->id;
-        $this->stepData = [];
-        $this->forgetSchemas('stepForm');
+        $this->flowSelected = $step?->id;
+        $this->flowStepData = [];
+        $this->forgetSchemas('flowStepForm');
 
         if ($step !== null) {
             $this->fillFlowPanel([
@@ -129,7 +130,7 @@ trait InteractsWithFlowBuilder
     }
 
     /** Adds a step at a "+" (0 is right after Start), from one of its type's presets. */
-    public function insertStep(int $position, string $type, string $preset = 'default'): void
+    public function insertFlowStep(int $position, string $type, string $preset = 'default'): void
     {
         $definition = $this->flowDefinition();
         $stepType = $definition->stepType($type);
@@ -148,7 +149,7 @@ trait InteractsWithFlowBuilder
 
         $step = new Step($definition->newStepId(), $type, $chosen->name, $chosen->settings, $chosen->when, $chosen->reminderDays);
         $this->storeFlow($flow->insert($position, $step));
-        $this->select($step->id);
+        $this->selectFlowNode($step->id);
     }
 
     /**
@@ -167,7 +168,7 @@ trait InteractsWithFlowBuilder
         return $found;
     }
 
-    public function removeStep(string $id): void
+    public function removeFlowStep(string $id): void
     {
         if ($this->flowIsReadOnly()) {
             return;
@@ -175,40 +176,40 @@ trait InteractsWithFlowBuilder
 
         $this->storeFlow($this->currentFlow()->remove($id));
 
-        if ($this->selected === $id) {
-            $this->select($this->flowDefinition()->settingsSchema() === [] ? null : self::FLOW_START);
+        if ($this->flowSelected === $id) {
+            $this->selectFlowNode($this->flowDefinition()->settingsSchema() === [] ? null : self::FLOW_START);
         }
     }
 
     /** Drops a step on a "+": it then sits before the step now at $position. */
-    public function moveStep(string $id, int $position): void
+    public function moveFlowStep(string $id, int $position): void
     {
         if (! $this->flowIsReadOnly()) {
             $this->storeFlow($this->currentFlow()->move($id, $position));
         }
     }
 
-    public function moveStepUp(string $id): void
+    public function moveFlowStepUp(string $id): void
     {
         $index = $this->currentFlow()->indexOf($id);
 
         if ($index !== null && $index > 0) {
-            $this->moveStep($id, $index - 1);
+            $this->moveFlowStep($id, $index - 1);
         }
     }
 
-    public function moveStepDown(string $id): void
+    public function moveFlowStepDown(string $id): void
     {
         $index = $this->currentFlow()->indexOf($id);
 
         if ($index !== null) {
             // Moving to position p puts the step before the one now at p, so one place down is index + 2.
-            $this->moveStep($id, $index + 2);
+            $this->moveFlowStep($id, $index + 2);
         }
     }
 
     /** The panel edits the selected step; every change goes straight back into the flow. */
-    public function updatedStepData(mixed $value = null, ?string $key = null): void
+    public function updatedFlowStepData(mixed $value = null, ?string $key = null): void
     {
         if ($this->flowIsReadOnly()) {
             return;
@@ -217,11 +218,11 @@ trait InteractsWithFlowBuilder
         // A different condition brings different fields: give each of them its key, starting from the condition's defaults.
         if ($key === self::PANEL_WHEN_TYPE) {
             $condition = is_string($value) ? $this->flowDefinition()->conditionType($value) : null;
-            $this->fillFlowPanel([...$this->stepData, self::PANEL_WHEN_SETTINGS => $condition?->defaults($this->flowDefinition()) ?? []]);
+            $this->fillFlowPanel([...$this->flowStepData, self::PANEL_WHEN_SETTINGS => $condition?->defaults($this->flowDefinition()) ?? []]);
         }
 
         $flow = $this->currentFlow();
-        $step = $this->selected === null ? null : $flow->find($this->selected);
+        $step = $this->flowSelected === null ? null : $flow->find($this->flowSelected);
 
         if ($step !== null) {
             $this->storeFlow($flow->replace($step->with($this->panelChanges())));
@@ -235,13 +236,13 @@ trait InteractsWithFlowBuilder
      */
     private function panelChanges(): array
     {
-        $whenType = is_string($this->stepData[self::PANEL_WHEN_TYPE] ?? null) ? $this->stepData[self::PANEL_WHEN_TYPE] : self::FLOW_ALWAYS;
+        $whenType = is_string($this->flowStepData[self::PANEL_WHEN_TYPE] ?? null) ? $this->flowStepData[self::PANEL_WHEN_TYPE] : self::FLOW_ALWAYS;
 
         return [
-            'name' => is_string($this->stepData['name'] ?? null) ? $this->stepData['name'] : '',
-            'settings' => $this->stepData['settings'] ?? [],
-            'when' => in_array($whenType, ['', self::FLOW_ALWAYS], true) ? null : ['type' => $whenType, 'settings' => $this->stepData[self::PANEL_WHEN_SETTINGS] ?? []],
-            'reminder_days' => $this->stepData[self::PANEL_REMINDER_DAYS] ?? null,
+            'name' => is_string($this->flowStepData['name'] ?? null) ? $this->flowStepData['name'] : '',
+            'settings' => $this->flowStepData['settings'] ?? [],
+            'when' => in_array($whenType, ['', self::FLOW_ALWAYS], true) ? null : ['type' => $whenType, 'settings' => $this->flowStepData[self::PANEL_WHEN_SETTINGS] ?? []],
+            'reminder_days' => $this->flowStepData[self::PANEL_REMINDER_DAYS] ?? null,
         ];
     }
 
@@ -253,27 +254,27 @@ trait InteractsWithFlowBuilder
         }
     }
 
-    public function settingsForm(Schema $schema): Schema
+    public function flowSettingsForm(Schema $schema): Schema
     {
         return $schema
             ->statePath('flowSettings')
             ->disabled($this->flowIsReadOnly())
-            ->components($this->selected === self::FLOW_START ? $this->flowDefinition()->settingsSchema() : []);
+            ->components($this->flowSelected === self::FLOW_START ? $this->flowDefinition()->settingsSchema() : []);
     }
 
-    public function testAction(): Action
+    public function flowDryRunAction(): Action
     {
-        return TestFlowAction::make('test')->definition($this->flowDefinitionKey())->flowUsing(fn (): Flow => $this->currentFlow());
+        return DryRunAction::make('flowDryRun')->definition($this->flowDefinitionKey())->flowUsing(fn (): Flow => $this->currentFlow());
     }
 
-    public function stepForm(Schema $schema): Schema
+    public function flowStepForm(Schema $schema): Schema
     {
         $definition = $this->flowDefinition();
-        $step = $this->selected === null ? null : $this->currentFlow()->find($this->selected);
+        $step = $this->flowSelected === null ? null : $this->currentFlow()->find($this->flowSelected);
         $type = $step === null ? null : $definition->stepType($step->type);
 
         if ($step === null || $type === null) {
-            return $schema->statePath('stepData')->components([]);
+            return $schema->statePath('flowStepData')->components([]);
         }
 
         $conditions = $definition->conditionTypes();
@@ -312,7 +313,7 @@ trait InteractsWithFlowBuilder
         }
 
         return $schema
-            ->statePath('stepData')
+            ->statePath('flowStepData')
             ->disabled($this->flowIsReadOnly())
             ->components($components);
     }
@@ -363,8 +364,8 @@ trait InteractsWithFlowBuilder
      */
     private function fillFlowPanel(array $state): void
     {
-        $this->forgetSchemas('stepForm');
-        $this->getSchema('stepForm')?->fill($state);
+        $this->forgetSchemas('flowStepForm');
+        $this->getSchema('flowStepForm')?->fill($state);
     }
 
     /** The named schemas are rebuilt the next time they are asked for. */
@@ -381,10 +382,10 @@ trait InteractsWithFlowBuilder
             return;
         }
 
-        $this->selected = self::FLOW_START;
-        $this->stepData = [];
-        $this->forgetSchemas('stepForm', 'settingsForm');
-        $this->getSchema('settingsForm')?->fill($this->currentFlow()->settings);
+        $this->flowSelected = self::FLOW_START;
+        $this->flowStepData = [];
+        $this->forgetSchemas('flowStepForm', 'flowSettingsForm');
+        $this->getSchema('flowSettingsForm')?->fill($this->currentFlow()->settings);
     }
 
     protected function currentFlow(): Flow

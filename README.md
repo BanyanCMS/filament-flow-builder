@@ -330,7 +330,7 @@ Each problem shows in red on its card. The form will not save until they are fix
 
 ### Test it as…
 
-The button above the canvas asks for your `contextFields()` and walks the flow as it is on screen. It shows each step the item passes, each it skips, and where it ends. Nothing is saved.
+This is the builder's dry run. The button above the canvas asks for your `contextFields()` and walks the flow as it is on screen. It shows each step the item passes, each it skips, and where it ends. Nothing is saved.
 
 ![Test it as…](docs/images/test-it-as.png)
 
@@ -351,7 +351,7 @@ class PurchaseFlow extends FlowDefinition
 }
 ```
 
-Register each definition once, through the plugin (`FlowBuilderPlugin::make()->definitions([...])`), or directly on the registry. `FlowBuilderField::make()->definition(PurchaseFlow::class)` also registers a class it is given, so for the field alone the plugin is optional. Register it anyway when you run flows outside a form.
+Register each definition once, through the plugin (`FlowBuilderPlugin::make()->definitions([...])`), or directly on the registry. `FlowBuilderField::make()->definition(PurchaseFlow::class)` does not register anything. If the class is not registered, it throws an `InvalidArgumentException` that says how to register it. The builder looks the definition up again on every Livewire request, so it must be registered before any page loads.
 
 ```php
 app(\Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry::class)->register(PurchaseFlow::class);
@@ -372,8 +372,8 @@ What a definition can say:
 | `settingsSchema()` | `[]` | Filament fields for the whole flow. If not empty, the Start card opens them. |
 | `startSummary(array $settings)` | `[]` | Chips on the Start card. |
 | `validateSettings(array $settings)` | `[]` | Problems with the flow settings, shown on the Start card. |
-| `testSchema()` | one text field per context field | The form of "Test it as…". |
-| `test(Flow $flow, array $input)` | walks the flow on screen | Override to run your own simulator. Returns a `FlowTestResult`. |
+| `dryRunSchema()` | one text field per context field | The form of "Test it as…". |
+| `dryRun(Flow $flow, array $input)` | walks the flow on screen | Override to run your own simulator. Returns a `DryRunResult`. |
 | `maxSteps()` | 30 | "+" stops offering steps beyond this. |
 | `newStepId()` | a random id | Override to match ids your app already stores. |
 | `settingsLabel()` | "Flow settings" | The heading of the Start card's panel. |
@@ -565,7 +565,7 @@ class EditPurchaseFlow extends Page
     protected function flowChanged(): void { $this->unsaved = true; }        // after every change
     protected function flowFull(int $max): void { /* "+" on a full flow */ }
     public function flowIsReadOnly(): bool { return false; }
-    public function flowIsTestable(): bool { return true; }                   // show "Test it as…"
+    public function flowHasDryRun(): bool { return true; }                    // show "Test it as…"
 }
 ```
 
@@ -575,6 +575,17 @@ class EditPurchaseFlow extends Page
     @include('flow-builder::canvas')
 </x-filament-panels::page>
 ```
+
+The trait adds these public members to your page. They all contain `flow`, so they do not clash with your own.
+
+| Member | Use |
+|---|---|
+| `$flowSelected` | The selected card: a step id, `FLOW_START`, or `null`. |
+| `$flowStepData` | The selected step's panel state. |
+| `$flowSettings` | The flow's own settings, edited on the Start card. |
+| `$flowProblems` | Problems your code found, by step id (or `"start"`). |
+| `selectFlowNode()`, `insertFlowStep()`, `removeFlowStep()`, `moveFlowStep()`, `moveFlowStepUp()`, `moveFlowStepDown()` | What the canvas calls. |
+| `flowStepForm()`, `flowSettingsForm()`, `flowDryRunAction()` | The panel schemas and the "Test it as…" action. |
 
 A page that needs a definition built with context (the current tenant, a record id) can override `flowDefinition()` and return its own instance. The stand-alone Livewire component `Banyan\FilamentFlowBuilder\Livewire\FlowBuilder` (`<livewire:flow-builder definition="purchase" wire:model="flow" />`) uses the same trait.
 
@@ -817,7 +828,7 @@ To report a security problem, read [SECURITY.md](SECURITY.md). Please report it 
 | `Data\Flow`, `Data\Step`, `Data\Condition`, `Data\Outcome`, `Data\StepPreset` | The data. |
 | `Validation\FlowValidator` | Problems by step id. |
 | `Runtime\FlowRunner`, `Runtime\Position`, `Runtime\Events\*` | Running a flow. |
-| `Actions\TestFlowAction`, `Testing\FlowWalker`, `Testing\FlowTestResult` | "Test it as…". |
+| `Actions\DryRunAction`, `DryRun\FlowWalker`, `DryRun\DryRunResult` | "Test it as…" (the dry run). |
 
 ## Developing the plugin
 

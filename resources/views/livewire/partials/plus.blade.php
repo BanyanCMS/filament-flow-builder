@@ -10,7 +10,7 @@
     @unless ($this->flowIsReadOnly())
         x-on:dragover.prevent="if (dragging) over = {{ $position }}"
         x-on:dragleave="over = null"
-        x-on:drop.prevent="if (dragging) { $wire.moveStep(dragging, {{ $position }}); dragging = null; over = null }"
+        x-on:drop.prevent="if (dragging) { $wire.moveFlowStep(dragging, {{ $position }}); dragging = null; over = null }"
         x-bind:class="{ 'is-over': over === {{ $position }} }"
     @endunless
 >
@@ -25,7 +25,7 @@
             <x-filament::dropdown.list>
                 @foreach ($flowDefinition->stepTypes() as $key => $type)
                     @foreach ($type->presets($flowDefinition) as $preset)
-                        <x-filament::dropdown.list.item :icon="$preset->icon ?? $type->icon()" wire:click="insertStep({{ $position }}, {{ \Illuminate\Support\Js::from($key) }}, {{ \Illuminate\Support\Js::from($preset->key) }})">
+                        <x-filament::dropdown.list.item :icon="$preset->icon ?? $type->icon()" wire:click="insertFlowStep({{ $position }}, {{ \Illuminate\Support\Js::from($key) }}, {{ \Illuminate\Support\Js::from($preset->key) }})">
                             <span class="ffb__menu-label">{{ $preset->label }}</span>
                             @if ($preset->description !== '')
                                 <span class="ffb__menu-help">{{ $preset->description }}</span>

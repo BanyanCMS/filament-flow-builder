@@ -3,8 +3,8 @@
     $name = $card['name'] !== '' ? $card['name'] : __('flow-builder::flow.unnamed');
 @endphp
 
-<div @class(['ffb__node', 'is-selected' => $this->selected === $card['id'], 'has-problem' => $card['problems'] !== []]) data-testid="flow-card-{{ $card['id'] }}">
-    <button type="button" class="ffb__select" wire:click="select({{ \Illuminate\Support\Js::from($card['id']) }})" aria-pressed="{{ $this->selected === $card['id'] ? 'true' : 'false' }}">
+<div @class(['ffb__node', 'is-selected' => $this->flowSelected === $card['id'], 'has-problem' => $card['problems'] !== []]) data-testid="flow-card-{{ $card['id'] }}">
+    <button type="button" class="ffb__select" wire:click="selectFlowNode({{ \Illuminate\Support\Js::from($card['id']) }})" aria-pressed="{{ $this->flowSelected === $card['id'] ? 'true' : 'false' }}">
         <span class="ffb__head">
             <span class="ffb__icon ffb__icon--{{ $card['color'] }}"><x-filament::icon :icon="$card['icon']" /></span>
             <span>
@@ -42,16 +42,16 @@
                 </x-slot>
                 <x-filament::dropdown.list>
                     @unless ($first)
-                        <x-filament::dropdown.list.item icon="heroicon-m-arrow-up" wire:click="moveStepUp({{ \Illuminate\Support\Js::from($card['id']) }})">
+                        <x-filament::dropdown.list.item icon="heroicon-m-arrow-up" wire:click="moveFlowStepUp({{ \Illuminate\Support\Js::from($card['id']) }})">
                             {{ __('flow-builder::flow.move_up') }}
                         </x-filament::dropdown.list.item>
                     @endunless
                     @unless ($final)
-                        <x-filament::dropdown.list.item icon="heroicon-m-arrow-down" wire:click="moveStepDown({{ \Illuminate\Support\Js::from($card['id']) }})">
+                        <x-filament::dropdown.list.item icon="heroicon-m-arrow-down" wire:click="moveFlowStepDown({{ \Illuminate\Support\Js::from($card['id']) }})">
                             {{ __('flow-builder::flow.move_down') }}
                         </x-filament::dropdown.list.item>
                     @endunless
-                    <x-filament::dropdown.list.item icon="heroicon-m-trash" color="danger" wire:click="removeStep({{ \Illuminate\Support\Js::from($card['id']) }})" wire:confirm="{{ __('flow-builder::flow.remove_confirm') }}">
+                    <x-filament::dropdown.list.item icon="heroicon-m-trash" color="danger" wire:click="removeFlowStep({{ \Illuminate\Support\Js::from($card['id']) }})" wire:confirm="{{ __('flow-builder::flow.remove_confirm') }}">
                         {{ __('flow-builder::flow.remove') }}
                     </x-filament::dropdown.list.item>
                 </x-filament::dropdown.list>

@@ -6,6 +6,7 @@ use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Definitions\FlowDefinitionRegistry;
 use Banyan\FilamentFlowBuilder\Forms\FlowBuilderField;
 use Banyan\FilamentFlowBuilder\Livewire\FlowBuilder;
+use Banyan\FilamentFlowBuilder\Tests\Support\CountingFlow;
 use Banyan\FilamentFlowBuilder\Tests\Support\PurchaseForm;
 use Livewire\Livewire;
 
@@ -35,4 +36,17 @@ it('takes a definition by class or by its registered key, and nothing else', fun
         ->and(fn () => FlowBuilderField::make('b')->definition('not-registered'))->toThrow(InvalidArgumentException::class)
         ->and(fn () => app(FlowDefinitionRegistry::class)->register(stdClass::class))->toThrow(InvalidArgumentException::class)
         ->and(fn () => app(FlowDefinitionRegistry::class)->get('nope'))->toThrow(InvalidArgumentException::class);
+});
+
+it('does not register a definition class as a side effect, and says how to register it', function (): void {
+    $class = CountingFlow::class;
+
+    expect(app(FlowDefinitionRegistry::class)->has($class::key()))->toBeFalse()
+        ->and(fn () => FlowBuilderField::make('c')->definition($class))
+        ->toThrow(InvalidArgumentException::class, 'FlowBuilderPlugin::make()->definitions')
+        ->and(app(FlowDefinitionRegistry::class)->has($class::key()))->toBeFalse();
+
+    app(FlowDefinitionRegistry::class)->register($class);
+
+    expect(FlowBuilderField::make('c')->definition($class)->getDefinitionKey())->toBe('counting');
 });

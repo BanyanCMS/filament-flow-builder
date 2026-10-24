@@ -39,24 +39,22 @@ class FlowBuilderField extends Field
         });
     }
 
-    /** @param class-string<FlowDefinition>|string $definition a definition class, or the key it was registered under */
+    /**
+     * Names the flow definition to edit: its class, or the key it is registered under.
+     * The definition must already be registered (FlowBuilderPlugin::definitions()),
+     * because the builder looks it up again on every Livewire request.
+     *
+     * @param  class-string<FlowDefinition>|string  $definition
+     */
     public function definition(string $definition): static
     {
-        $registry = app(FlowDefinitionRegistry::class);
+        $key = is_subclass_of($definition, FlowDefinition::class) ? $definition::key() : $definition;
 
-        if (is_subclass_of($definition, FlowDefinition::class)) {
-            if (! $registry->has($definition::key())) {
-                $registry->register($definition);
-            }
-
-            $definition = $definition::key();
+        if (! app(FlowDefinitionRegistry::class)->has($key)) {
+            throw new InvalidArgumentException("No flow definition is registered as [{$key}]. Add [{$definition}] to FlowBuilderPlugin::make()->definitions([...]) on your panel.");
         }
 
-        if (! $registry->has($definition)) {
-            throw new InvalidArgumentException("No flow definition is registered as [{$definition}].");
-        }
-
-        $this->definitionKey = $definition;
+        $this->definitionKey = $key;
 
         return $this;
     }

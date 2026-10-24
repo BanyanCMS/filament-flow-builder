@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Banyan\FilamentFlowBuilder\Testing;
+namespace Banyan\FilamentFlowBuilder\DryRun;
 
 use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Data\Outcome;
@@ -17,7 +17,7 @@ use Banyan\FilamentFlowBuilder\Definitions\FlowDefinition;
 final class FlowWalker
 {
     /** @param array<string, mixed> $context */
-    public function walk(FlowDefinition $definition, Flow $flow, array $context): FlowTestResult
+    public function walk(FlowDefinition $definition, Flow $flow, array $context): DryRunResult
     {
         $lines = [];
 
@@ -43,7 +43,7 @@ final class FlowWalker
             }
 
             if ($forward === null) {
-                return new FlowTestResult([...$lines, (string) __('flow-builder::flow.test.stuck_at', ['step' => $name])], (string) __('flow-builder::flow.test.outcome_stuck', ['step' => $name]));
+                return new DryRunResult([...$lines, (string) __('flow-builder::flow.test.stuck_at', ['step' => $name])], (string) __('flow-builder::flow.test.outcome_stuck', ['step' => $name]));
             }
 
             $lines[] = (string) __('flow-builder::flow.test.passed', ['step' => $name, 'outcome' => $forward->label]);
@@ -53,6 +53,6 @@ final class FlowWalker
             }
         }
 
-        return new FlowTestResult($lines, (string) __('flow-builder::flow.test.outcome_finished', ['finish' => $definition->finishLabel()]));
+        return new DryRunResult($lines, (string) __('flow-builder::flow.test.outcome_finished', ['finish' => $definition->finishLabel()]));
     }
 }

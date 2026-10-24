@@ -38,7 +38,7 @@ final class HostedFlow extends Component implements HasActions, HasSchemas
         return $this->locked;
     }
 
-    public function flowIsTestable(): bool
+    public function flowHasDryRun(): bool
     {
         return false;
     }
@@ -58,9 +58,9 @@ final class HostedFlow extends Component implements HasActions, HasSchemas
     /** As a host does after a failed save: errors under the panel's fields and elsewhere, then another card. */
     public function selectWithErrors(string $id): void
     {
-        $this->addError('stepData.name', 'Too long.');
+        $this->addError('flowStepData.name', 'Too long.');
         $this->addError('other', 'Kept.');
-        $this->select($id);
+        $this->selectFlowNode($id);
     }
 
     public function render(): View

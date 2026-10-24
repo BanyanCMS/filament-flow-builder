@@ -8,10 +8,10 @@ use Banyan\FilamentFlowBuilder\Conditions\ConditionType;
 use Banyan\FilamentFlowBuilder\Conditions\ValueCondition;
 use Banyan\FilamentFlowBuilder\Data\Flow;
 use Banyan\FilamentFlowBuilder\Data\Step;
+use Banyan\FilamentFlowBuilder\DryRun\DryRunResult;
+use Banyan\FilamentFlowBuilder\DryRun\FlowWalker;
 use Banyan\FilamentFlowBuilder\Steps\ApprovalStep;
 use Banyan\FilamentFlowBuilder\Steps\StepType;
-use Banyan\FilamentFlowBuilder\Testing\FlowTestResult;
-use Banyan\FilamentFlowBuilder\Testing\FlowWalker;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Component;
@@ -115,7 +115,7 @@ abstract class FlowDefinition
      *
      * @return list<Component|Field>
      */
-    public function testSchema(): array
+    public function dryRunSchema(): array
     {
         $fields = [];
 
@@ -132,7 +132,7 @@ abstract class FlowDefinition
      *
      * @param  array<string, mixed>  $input
      */
-    public function test(Flow $flow, array $input): FlowTestResult
+    public function dryRun(Flow $flow, array $input): DryRunResult
     {
         return app(FlowWalker::class)->walk($this, $flow, $input);
     }

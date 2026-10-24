@@ -37,9 +37,9 @@ class FlowBuilder extends Component implements HasActions, HasSchemas
     #[Locked]
     public bool $readOnly = false;
 
-    /** Show the built-in "Test it as…" button above the canvas. */
+    /** Show the built-in "Test it as…" dry run button above the canvas. */
     #[Locked]
-    public bool $testable = true;
+    public bool $dryRun = true;
 
     public function mount(): void
     {
@@ -56,9 +56,9 @@ class FlowBuilder extends Component implements HasActions, HasSchemas
         return $this->readOnly;
     }
 
-    public function flowIsTestable(): bool
+    public function flowHasDryRun(): bool
     {
-        return $this->testable;
+        return $this->dryRun;
     }
 
     public function render(): View

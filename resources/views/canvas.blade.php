@@ -1,15 +1,15 @@
 @php
     /** The canvas and its settings panel; included by any host using InteractsWithFlowBuilder. */
     ['cards' => $cards, 'start' => $start, 'flowDefinition' => $flowDefinition] = $this->flowCanvas();
-    $startSelected = $this->selected === $this::FLOW_START;
+    $startSelected = $this->flowSelected === $this::FLOW_START;
     $last = count($cards) - 1;
-    $selectedCard = collect($cards)->firstWhere('id', $this->selected);
+    $selectedCard = collect($cards)->firstWhere('id', $this->flowSelected);
 @endphp
 
 <div class="ffb" data-testid="flow-builder" x-data="{ dragging: null, over: null }">
     <section class="ffb__canvas" aria-label="{{ __('flow-builder::flow.canvas') }}">
-        @if ($this->flowIsTestable())
-            <div class="ffb__toolbar">{{ $this->testAction }}</div>
+        @if ($this->flowHasDryRun())
+            <div class="ffb__toolbar">{{ $this->flowDryRunAction }}</div>
         @endif
 
         <ol class="ffb__flow">
@@ -17,7 +17,7 @@
                 @if ($start['selectable'])
                     <button
                         type="button"
-                        wire:click="select({{ \Illuminate\Support\Js::from($this::FLOW_START) }})"
+                        wire:click="selectFlowNode({{ \Illuminate\Support\Js::from($this::FLOW_START) }})"
                         @class(['ffb__node', 'ffb__node--fixed', 'ffb__node--button', 'is-selected' => $startSelected, 'has-problem' => $start['problems'] !== []])
                         aria-pressed="{{ $startSelected ? 'true' : 'false' }}"
                         data-testid="flow-start"
@@ -96,7 +96,7 @@
                 <p class="ffb__problem">{{ $problem }}</p>
             @endforeach
 
-            {{ $this->settingsForm }}
+            {{ $this->flowSettingsForm }}
         @elseif (is_array($selectedCard))
             <p class="ffb__kind">{{ $selectedCard['kind'] }}</p>
             <h2 class="ffb__panel-title">{{ $selectedCard['name'] !== '' ? $selectedCard['name'] : __('flow-builder::flow.unnamed') }}</h2>
@@ -105,7 +105,7 @@
                 <p class="ffb__problem">{{ $problem }}</p>
             @endforeach
 
-            {{ $this->stepForm }}
+            {{ $this->flowStepForm }}
 
             @if ($selectedCard['outcomes'] !== [])
                 <div class="ffb__outcomes-panel">
@@ -122,7 +122,7 @@
                     outlined
                     size="sm"
                     icon="heroicon-m-trash"
-                    wire:click="removeStep({{ \Illuminate\Support\Js::from($selectedCard['id']) }})"
+                    wire:click="removeFlowStep({{ \Illuminate\Support\Js::from($selectedCard['id']) }})"
                     wire:confirm="{{ __('flow-builder::flow.remove_confirm') }}"
                     data-testid="flow-remove"
                 >
